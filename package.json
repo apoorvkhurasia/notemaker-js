@@ -1,0 +1,17 @@
+{
+  "name": "notemaker-js",
+  "version": "1.0.0",
+  "description": "Notemaker JS version",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "author": "Apoorv Khurasia",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.2.3",
+    "jquery": "^3.7.1",
+    "mathjax": "^3.2.2"
+  }
+}
