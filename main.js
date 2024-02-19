@@ -1,9 +1,5 @@
-class Topic {
-    constructor(topicKey) {
-        this.topicKey = topicKey.replaceAll(".", " ");
-        this.displayName = topicKey;
-    }
-}
+import * as fs from "./lib/fs.js";
+import * as markdown from "./lib/markdown.min.js";
 
 const State = {
     TOPICS: "topics",
@@ -12,7 +8,86 @@ const State = {
     CHAPTER_EDIT: "chapter-edit",
     CHAPTER_EDIT_FINISHED: "chapter-edit-finished",
     CHAPTER_EDIT_IN_PROGRESS: "chapter-edit-in-progress"
-};
+}
+
+const Preview = {
+    delay: 150, // delay after keystroke before updating
+    preview: null, // filled in by Init below
+    buffer: null, // filled in by Init below
+    timeout: null, // store setTimout id
+    mjRunning: false, // true when MathJax is processing
+    mjPending: false, // true when a typeset has been queued
+    oldText: null, // used to check if an update is needed
+    //
+    //  Get the preview and buffer DIV's
+    //
+    Init: function () {
+        this.preview = document.getElementById("displayArea2");
+        this.buffer = document.getElementById("displayArea1");
+
+        $("#displayArea1").show();
+        $("#displayArea2").hide();
+    },
+    //
+    //  Switch the buffer and preview, and display the right one.
+    //
+    SwapBuffers: function () {
+        var buffer = this.preview,
+            preview = this.buffer;
+        this.buffer = buffer;
+        this.preview = preview;
+        $("#" + this.buffer.id).hide();
+        $("#" + this.preview.id).show();
+    },
+    //
+    //  This gets called when a key is pressed in the textarea.
+    //  We check if there is already a pending update and clear it if so.
+    //  Then set up an update to occur after a small delay (so if more keys
+    //    are pressed, the update won't occur until after there has been 
+    //    a pause in the typing).
+    //  The callback function is set up below, after the Preview object is set up.
+    //
+    Update: function () {
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+        }
+        this.timeout = setTimeout(this.callback, this.delay);
+    },
+    //
+    //  Creates the preview and runs MathJax on it.
+    //  If MathJax is already trying to render the code, return
+    //  If the text hasn't changed, return
+    //  Otherwise, indicate that MathJax is running, and start the
+    //    typesetting.  After it is done, call PreviewDone.
+    //  
+    CreatePreview: function () {
+        Preview.timeout = null;
+        if (this.mjPending) {
+            return;
+        }
+        var text = document.getElementById("parsedMarkdown").innerHTML;
+        if (text === this.oldtext) {
+            return;
+        } else if (this.mjRunning) {
+            this.mjPending = true;
+            MathJax.Hub.Queue(["CreatePreview", this]);
+        } else {
+            this.buffer.innerHTML = this.oldtext = text;
+            this.mjRunning = true;
+            MathJax.Hub.Queue(
+                ["Typeset", MathJax.Hub, this.buffer], ["PreviewDone", this]
+            );
+        }
+    },
+    //
+    //  Indicate that MathJax is no longer running,
+    //  and swap the buffers to show the results.
+    //
+    PreviewDone: function () {
+        this.mjRunning = this.mjPending = false;
+        this.SwapBuffers();
+    }
+}
 
 var errorDetailsVisible = true;
 var currentTopic = null;
@@ -20,161 +95,103 @@ var currentChapter = null;
 
 $(function () {
     const button = document.getElementById('open-file');
+    state(State.TOPICS);
     button.addEventListener('click', async () => {
         const dirHandle = await window.showDirectoryPicker();
-        await initApp(dirHandle)
+        await createTopicList(dirHandle);
+        initApp();
     });
 });
 
-async function initApp(contentRootHandle) {
-    state(State.TOPICS);
-    var topicParam = getParameterByName("topic");
-    var chapterParam = getParameterByName("chapter");
-    var editParam = getParameterByName("edit");
-
-    if (chapterParam) {
-        downloadAndDisplayChapter(chapterParam, editParam && (editParam === "true"), true);
-    } else if (topicParam) {
-        downloadAndDisplayChapters(topicParam, editParam && (editParam === "true"), true);
-    } else {
-        await navToTopicList(contentRootHandle);
-    }
+function initApp() {
+    Preview.callback = MathJax.Callback(["CreatePreview", Preview]);
+    Preview.callback.autoReset = true; // make sure it can run more than once
+    Preview.Init();
 }
 
-//Navigation Methods
-function getParameterByName(name, url) {
-    if (!url) url = window.location.href;
-    name = name.replace(/[\[\]]/g, "\\$&");
-    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
+function createListItem(displayText, linkAction) {
+    const listItem = document.createElement("li");
+    if (linkAction) {
+        const linkElem = document.createElement("a");
+        linkElem.appendChild(document.createTextNode(displayText));
+        linkElem.onclick = linkAction;
+        listItem.appendChild(linkElem);
+    }
+    return listItem;
 }
 
-async function navToTopicList(contentRootHandle) {
-    var topicListElem = document.createElement("ul");
-    for await (const entry of contentRootHandle.values()) {
-        if (entry.kind === "directory" && entry.name !== ".") {
-            const displayName = entry.name.replaceAll(".", " ");
-            var topicElem = document.createElement("li");
-            topicElem.appendChild(createLinkWithOnClick(displayName, function () {
-                downloadAndDisplayChapters(entry.name);
-            }));
-            topicListElem.appendChild(topicElem);
-        }
+
+async function createTopicList(contentRootHandle) {
+    const topicListElem = document.createElement("ul");
+    const topics = await fs.getTopics(contentRootHandle);
+    for (const topic of topics) {
+        topicListElem.appendChild(createListItem(
+            topic.displayName,
+            async () => displayTopic(contentRootHandle, topic)));
     }
-    var newTopicCreateForm = document.createElement("li");
 
-    var newTopicNameLabel = document.createElement("label");
-    newTopicNameLabel.setAttribute("for", "newTopicName");
-    newTopicNameLabel.appendChild(document.createTextNode("Create a new topic with name: "));
-    newTopicCreateForm.appendChild(newTopicNameLabel);
+    const newTopicCreateListItem = document.createElement("li");
+    const newTopicCreationHintLabel = document.createElement("label");
+    newTopicCreationHintLabel.appendChild(document.createTextNode("Create a new topic with name: "));
+    newTopicCreateListItem.appendChild(newTopicCreationHintLabel);
 
-    var newTopicNameInput = document.createElement("input");
+    const newTopicNameInput = document.createElement("input");
     newTopicNameInput.setAttribute("id", "newTopicName");
     newTopicNameInput.setAttribute("name", "newTopicName");
-    newTopicCreateForm.appendChild(newTopicNameInput);
+    newTopicCreateListItem.appendChild(newTopicNameInput);
 
-    var createNewTopicBtn = document.createElement("button");
+    const createNewTopicBtn = document.createElement("button");
+    createNewTopicBtn.setAttribute("id", "createNewTopicBtn");
+    createNewTopicBtn.setAttribute("name", "createNewTopicBtn");
     createNewTopicBtn.appendChild(document.createTextNode("Create"));
-    createNewTopicBtn.onclick = function () {
-        var form = {
-            topicName: newTopicNameInput.value
-        };
-
-        createNewTopicBtn.setAttribute("disabled", true);
-
-        var request = $.ajax({
-            url: "__BASE_URL__/server/admin/insertTopic.php",
-            type: "post",
-            data: form
-        });
-
-        request.done(function (response, textStatus, jqXHR) {
-            console.log("Successfully created a new topic chapter.");
-            displayChapters(response);
-        });
-
-        request.fail(function (response, textStatus, jqXHR) {
-            console.log("Topic posting failed.");
-            state(State.ERROR,
-                "Status: " + textStatus + "<br /> Response from server: " + response.responseText);
-        });
-
-        request.always(function () {
+    createNewTopicBtn.addEventListener("click", async () => {
+        createNewTopicBtn.setAttribute("disabled", true); //disabled until callback completes
+        const topicName = newTopicNameInput.value;
+        try {
+            const createdTopic = await fs.createNewTopic(contentRootHandle, topicName);
+            await displayTopic(createdTopic);
+        } catch (err) {
+            console.log(err);
+        } finally {
             createNewTopicBtn.setAttribute("disabled", false);
-        });
-    };
+        }
+    });
 
-    newTopicCreateForm.appendChild(createNewTopicBtn);
-    topicListElem.appendChild(newTopicCreateForm);
+    newTopicCreateListItem.appendChild(createNewTopicBtn);
+    topicListElem.appendChild(newTopicCreateListItem);
     appendAsOnlyChild("#topics", topicListElem);
     state(State.TOPICS);
 }
 
-function downloadAndDisplayChapters(topicChapterLink, edit) {
-    if (typeof (edit) === 'undefined') edit = false;
-
-    //Clear content previously displayed
+async function displayTopic(contentRootHandle, topic, edit = false) {
     clearChapterContent();
-
-    httpGetAsync(topicChapterLink, function (data) {
-        var response = JSON.parse(data);
-        displayChapters(response);
-
-        if (edit) {
-            appendChapter();
-        }
-    }, function (errResponse) {
-        $("#permlink").attr("href", "__BASE_URL__/index.html");
-        state(State.ERROR, "Error retrieving list of chapters. Response from " + topicChapterLink + ":\n" + errResponse);
-    });
-}
-
-function displayChapters(topicResponse) {
-    currentTopic = topicResponse.topic;
+    currentTopic = topic;
     currentChapter = null;
 
-    var topicName = currentTopic.displayName;
-    var topicKey = currentTopic.topicKey;
-
-    var chapterList = topicResponse.chapters;
-    updateTableOfContents(topicResponse.topic, chapterList);
+    const chapterList = await fs.getChapters(contentRootHandle, topic);
+    updateTableOfContents(contentRootHandle, topic, chapterList);
     state(State.TABLE_OF_CONTENTS);
-}
-
-function downloadAndDisplayChapter(url, edit, updateTOC) {
-    if (typeof (edit) === 'undefined') edit = false;
-    if (typeof (updateTOC) === 'undefined') updateTOC = false;
-    httpGetAsync(url, function (data) {
-        var response = JSON.parse(data);
-        displayChapter(response, edit, updateTOC);
-    }, function (errResp) {
-        $("#permlink").attr("href", "__BASE_URL__/index.html");
-        state(State.ERROR, "Error retrieving chapter contents. Response from " + url + ":\n" + errResp);
-    });
-}
-
-function displayChapter(response, edit, updateTOC) {
-    if (typeof (edit) === 'undefined') edit = false;
-    if (typeof (updateTOC) === 'undefined') updateTOC = false;
-
-    currentChapter = response.chapter;
-    currentTopic = response.chapter.topic;
-    chapterName.value = currentChapter.displayName;
-    var content = response.content;
-    $("#markdownInput").val(content);
-    render();
-
-    if (!edit) {
-        state(State.CHAPTER_DISPLAY_BUT_NOT_EDIT);
-    } else {
-        state(State.CHAPTER_EDIT);
+    if (edit) {
+        appendChapter();
     }
+}
 
-    if (updateTOC) {
-        updateTableOfContents(response.chapter.topic, response.allChapters);
+async function displayChapter(contentRootHandle, chapter, edit = false, updateTOC = false) {
+    currentChapter = chapter;
+    if (chapter) {
+        currentTopic = chapter.topic;
+        $("#chapterName").val(currentChapter.displayName);
+        const rawText = await fs.getChapterRawText(contentRootHandle, chapter);
+        $("#markdownInput").val(rawText);
+        render();
+        if (!edit) {
+            state(State.CHAPTER_DISPLAY_BUT_NOT_EDIT);
+        } else {
+            state(State.CHAPTER_EDIT);
+        }
+        if (updateTOC) {
+            updateTableOfContents(chapter.topic, []);
+        }
     }
 }
 
@@ -184,69 +201,22 @@ function appendChapter() {
     state(State.CHAPTER_EDIT);
 }
 
-//End: Navigation Methods
-
-//Helper Methods
-
-function updateTableOfContents(topic, chapterList) {
-    console.log(JSON.stringify(topic));
+function updateTableOfContents(contentRootHandle, topic, chapterList) {
     appendAsOnlyChild("#heading", document.createTextNode("Apoorv's Notes on " + topic.displayName));
+    const chapterListElems = document.createElement("ol");
+    for (const chapterToDisplay of chapterList) {
+        chapterListElems.appendChild(
+            createListItem(
+                chapterToDisplay.chapterName,
+                async () => await displayChapter(contentRootHandle, chapterToDisplay)
+            )
+        );
+    }
 
-    var chapterListElems = document.createElement("ol");
-    jQuery.each(chapterList, function (index, chapter) {
-        console.log(JSON.stringify(chapter));
-        var liElem = document.createElement("li");
-        liElem.appendChild(createLinkWithOnClick(chapter.displayName, function () {
-            downloadAndDisplayChapter(chapter.links["get_content"]);
-        }));
-        chapterListElems.appendChild(liElem);
-    });
-
-    var appendNewChapterElem = document.createElement("li");
-    appendNewChapterElem.appendChild(createLinkWithOnClick("Append", function () {
-        appendChapter();
-    }));
+    const appendNewChapterElem = createListItem("Append", () => appendChapter());
     appendNewChapterElem.appendChild(document.createTextNode(" a new chapter on this topic."));
     chapterListElems.appendChild(appendNewChapterElem);
-
     appendAsOnlyChild("#chapters", chapterListElems);
-}
-
-function httpGetAsync(theUrl, callback, errorCallback = null) {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function () {
-        if (xmlHttp.readyState == 4) {
-            if (xmlHttp.status == 200) {
-                callback(xmlHttp.responseText);
-            } else if (errorCallback) {
-                errorCallback(xmlHttp.response);
-            }
-        }
-    }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-    xmlHttp.send(null);
-}
-
-function convertTopicToFriendlyName(topicInternalName) {
-    return topicInternalName.split(".").join(" ");
-}
-
-function convertTopicToInternalName(topicInternalName) {
-    return topicInternalName.split(" ").join(".");
-}
-
-function createLinkWithHref(content, href) {
-    var linkElem = document.createElement("a");
-    linkElem.appendChild(document.createTextNode(content));
-    linkElem.href = href;
-    return linkElem;
-}
-
-function createLinkWithOnClick(content, onclickCallback) {
-    var linkElem = document.createElement("a");
-    linkElem.appendChild(document.createTextNode(content));
-    linkElem.onclick = onclickCallback;
-    return linkElem;
 }
 
 function appendAsOnlyChild(selector, childElem) {
@@ -257,27 +227,16 @@ function appendAsOnlyChild(selector, childElem) {
 function showEditor() {
     $("#editor").show();
     $("#editLink").hide();
-    if (currentChapter) {
-        $("#permlink").attr("href", "__BASE_URL__/index.html?chapter=" + encodeURIComponent(currentChapter.links["get_content"]) + "&edit=true");
-    } else if (currentTopic) {
-        $("#permlink").attr("href", "__BASE_URL__/index.html?topic=" + encodeURIComponent(currentTopic.links["get_chapters"]) + "&edit=true");
-    }
 }
 
 function hideEditor() {
     $("#editor").hide();
     $("#editLink").show();
-    if (currentChapter) {
-        $("#permlink").attr("href", "__BASE_URL__/index.html?chapter=" + encodeURIComponent(currentChapter.links["get_content"]));
-    } else if (currentTopic) {
-        $("#permlink").attr("href", "__BASE_URL__/index.html?topic=" + encodeURIComponent(currentTopic.links["get_chapters"]));
-    }
 }
 
 function render() {
-    var markdownInput = document.getElementById("markdownInput");
-    var underScoreEscapedMarkdown = replaceAll($("#markdownInput").val(), "_", "\\_");
-    var parsedHTML = markdown.toHTML(underScoreEscapedMarkdown);
+    var underScoreEscapedMarkdown = $("#markdownInput").val().replaceAll("_", "\\_");
+    var parsedHTML = underScoreEscapedMarkdown;
     $("#parsedMarkdown").html(parsedHTML);
     Preview.Update();
 }
@@ -292,50 +251,16 @@ function decreaseInputFontSize() {
     $('#markdownInput').css("font-size", (currFontSize - 1) + "px");
 }
 
-function upsertChapter() {
-    var form = {
-        markdown: markdownInput.value,
-        topicKey: currentTopic.topicKey,
-        chapterName: chapterName.value
-    };
-
-    if (currentChapter) {
-        form.chapterKey = currentChapter.chapterKey;
-    }
-
-    state(State.CHAPTER_EDIT_IN_PROGRESS);
-
-    var request = $.ajax({
-        url: "__BASE_URL__/server/admin/insert.php",
-        type: "post",
-        data: form
-    });
-
-    request.done(function (response, textStatus, jqXHR) {
-        console.log("Successfully posted chapter.");
-        displayChapter(response, false, true);
-    });
-
-    request.fail(function (response, textStatus, jqXHR) {
-        console.log(response);
-        state(State.ERROR, "Chapter posting failed.\n" + response);
-    });
-
-    request.always(function () {
-        state(State.CHAPTER_EDIT_FINISHED);
-    });
-}
-
 function cancelEditChapter() {
     //Whenever we next go into edit mode; we will enable these buttons
     $("#finishEdit").prop('disabled', true);
     $("#cancelEdit").prop('disabled', true);
     if (currentChapter) {
-        downloadAndDisplayChapter(currentChapter.links["get_content"]);
+        displayChapter(currentChapter);
     } else if (currentTopic) {
-        downloadAndDisplayChapters(currentTopic.links["get_chapters"]);
+        displayTopic(currentTopic);
     } else {
-        navToTopicList();
+        createTopicList();
     }
 }
 
@@ -418,90 +343,3 @@ function clearChapterContent() {
     $("#markdownInput").val("");
     render();
 }
-
-//End: Helper Methods
-
-//Courtesy: https://github.com/mathjax/MathJax-examples/blob/master/MathJax-base/sample-dynamic-2.html
-var Preview = {
-    delay: 150, // delay after keystroke before updating
-    preview: null, // filled in by Init below
-    buffer: null, // filled in by Init below
-    timeout: null, // store setTimout id
-    mjRunning: false, // true when MathJax is processing
-    mjPending: false, // true when a typeset has been queued
-    oldText: null, // used to check if an update is needed
-    //
-    //  Get the preview and buffer DIV's
-    //
-    Init: function () {
-        this.preview = document.getElementById("displayArea2");
-        this.buffer = document.getElementById("displayArea1");
-
-        $("#displayArea1").show();
-        $("#displayArea2").hide();
-    },
-    //
-    //  Switch the buffer and preview, and display the right one.
-    //
-    SwapBuffers: function () {
-        var buffer = this.preview,
-            preview = this.buffer;
-        this.buffer = buffer;
-        this.preview = preview;
-        $("#" + this.buffer.id).hide();
-        $("#" + this.preview.id).show();
-    },
-    //
-    //  This gets called when a key is pressed in the textarea.
-    //  We check if there is already a pending update and clear it if so.
-    //  Then set up an update to occur after a small delay (so if more keys
-    //    are pressed, the update won't occur until after there has been 
-    //    a pause in the typing).
-    //  The callback function is set up below, after the Preview object is set up.
-    //
-    Update: function () {
-        if (this.timeout) {
-            clearTimeout(this.timeout);
-        }
-        this.timeout = setTimeout(this.callback, this.delay);
-    },
-    //
-    //  Creates the preview and runs MathJax on it.
-    //  If MathJax is already trying to render the code, return
-    //  If the text hasn't changed, return
-    //  Otherwise, indicate that MathJax is running, and start the
-    //    typesetting.  After it is done, call PreviewDone.
-    //  
-    CreatePreview: function () {
-        Preview.timeout = null;
-        if (this.mjPending) {
-            return;
-        }
-        var text = document.getElementById("parsedMarkdown").innerHTML;
-        if (text === this.oldtext) {
-            return;
-        } else if (this.mjRunning) {
-            this.mjPending = true;
-            MathJax.Hub.Queue(["CreatePreview", this]);
-        } else {
-            this.buffer.innerHTML = this.oldtext = text;
-            this.mjRunning = true;
-            MathJax.Hub.Queue(
-                ["Typeset", MathJax.Hub, this.buffer], ["PreviewDone", this]
-            );
-        }
-    },
-    //
-    //  Indicate that MathJax is no longer running,
-    //  and swap the buffers to show the results.
-    //
-    PreviewDone: function () {
-        this.mjRunning = this.mjPending = false;
-        this.SwapBuffers();
-    }
-};
-//
-//  Cache a callback to the CreatePreview action
-//
-Preview.callback = MathJax.Callback(["CreatePreview", Preview]);
-Preview.callback.autoReset = true; // make sure it can run more than once
