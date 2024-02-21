@@ -27,24 +27,24 @@ $(function () {
     const newItemLink = document.getElementById("new-topic-or-chapter");
     newItemLink.addEventListener("click", getTopicOrChapterNameFromUser);
 
-    const inputForm = $("#topic-or-chapter-input");
-    inputForm.on("keyup", async (e) => {
-        if (inputForm.is(":focus") && e.key === 'Enter') {
-            await createNewTopicOrChapter(inputForm.val());
-            inputForm.hide();
-        }
-    });
+    document.getElementById("confirmTopicOrChapterCreationBtn")
+        .addEventListener("click", createNewTopicOrChapter);
+
+    document.getElementById("cancelCreateTopicOrChapterBtn")
+        .addEventListener("click", cancelCreateTopicOrChapter);
 });
 
 function getTopicOrChapterNameFromUser() {
     if (!currentContentRoot) return;
-    $("#topic-or-chapter-input").show();
+    $("#topic-or-chapter-input").val("");
+    $("#topic-or-chapter-input-form").show();
 }
 
-async function createNewTopicOrChapter(userInput) {
+async function createNewTopicOrChapter() {
     if (!currentContentRoot) return;
 
     const contentRootHandle = currentContentRoot;
+    const userInput = $("#topic-or-chapter-input").val();
     if (!userInput) {
         return;
     }
@@ -62,6 +62,12 @@ async function createNewTopicOrChapter(userInput) {
             async () => displayChapter(chapter)));
         displayChapter(chapter);
     }
+
+    $("#topic-or-chapter-input-form").hide();
+}
+
+async function cancelCreateTopicOrChapter(event) {
+    $("#topic-or-chapter-input-form").hide();
 }
 
 async function createTopicList() {
@@ -156,7 +162,7 @@ function setState(state) {
             $("#save-chapter").hide();
             $("#discard-chapter").hide();
             $("#new-topic-or-chapter").hide();
-            $("#topic-or-chapter-input").hide()
+            $("#topic-or-chapter-input-form").hide();
             break;
     }
 }
