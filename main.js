@@ -2,6 +2,7 @@ import * as fs from "./lib/fs.js";
 import * as cmp from "./lib/components.js";
 
 const State = {
+    BLANK: "blank",
     TOPICS: "topics",
     CHAPTER_LIST: "chapters",
 }
@@ -12,7 +13,7 @@ var currentTopic = null;
 var currentChapter = null;
 
 $(function () {
-    setState(State.TOPICS);
+    setState(State.BLANK);
     const openFileLink = document.getElementById("open-store");
     openFileLink.addEventListener("click", async () => {
         currentContentRoot = await window.showDirectoryPicker();
@@ -26,8 +27,8 @@ $(function () {
     const newItemLink = document.getElementById("new-topic-or-chapter");
     newItemLink.addEventListener("click", getTopicOrChapterNameFromUser);
 
-    const inputForm = document.getElementById("topic-or-chapter-input");
-    inputForm.addEventListener("onkeyup", async (e) => {
+    const inputForm = $("#topic-or-chapter-input");
+    inputForm.on("keyup", async (e) => {
         if (inputForm.is(":focus") && e.key === 'Enter') {
             await createNewTopicOrChapter(inputForm.val());
             inputForm.hide();
@@ -37,8 +38,7 @@ $(function () {
 
 function getTopicOrChapterNameFromUser() {
     if (!currentContentRoot) return;
-    const inputForm = document.getElementById("topic-or-chapter-input");
-    inputForm.show();
+    $("#topic-or-chapter-input").show();
 }
 
 async function createNewTopicOrChapter(userInput) {
@@ -49,17 +49,18 @@ async function createNewTopicOrChapter(userInput) {
         return;
     }
 
-    const explorerListElem = $("#explorer-items");
+    const explorerListElem = document.getElementById("explorer-items");
     if (currentState === State.TOPICS) {
-        topic = await fs.createNewTopic(contentRootHandle, userInput);
+        const topic = await fs.createNewTopic(contentRootHandle, userInput);
         explorerListElem.appendChild(cmp.createListItem(
             topic.displayName,
             async () => displayTopic(topic)));
-    } else if (currentState === State.CHAPTER_LIST) {
-        chapter = await fs.createNewChapter(contentRootHandle, chapterName);
+    } else if (currentState === State.CHAPTER_LIST && currentTopic) {
+        const chapter = await fs.createNewChapter(contentRootHandle, currentTopic, userInput);
         explorerListElem.appendChild(cmp.createListItem(
             chapter.displayName,
             async () => displayChapter(chapter)));
+        displayChapter(chapter);
     }
 }
 
@@ -116,7 +117,7 @@ function updateTableOfContents(chapterList) {
     for (const chapterToDisplay of chapterList) {
         chapterListElems.appendChild(
             cmp.createListItem(
-                chapterToDisplay.chapterName,
+                chapterToDisplay.displayName,
                 async () => await displayChapter(chapterToDisplay)
             )
         );
@@ -137,7 +138,8 @@ function setState(state) {
             $("#main-content").hide();
             $("#save-chapter").hide();
             $("#discard-chapter").hide();
-            $("#new-topic-or-chapter").textContent = "New Topic";
+            $("#new-topic-or-chapter").show();
+            $("#new-topic-or-chapter").text("New Topic");
             break;
         case State.CHAPTER_LIST:
             $("#main-content").show();
@@ -145,10 +147,16 @@ function setState(state) {
             $("#markdownInput").show();
             $("#save-chapter").show();
             $("#discard-chapter").show();
-            $("#new-topic-or-chapter").textContent = "New Chapter";
+            $("#new-topic-or-chapter").show();
+            $("#new-topic-or-chapter").text("New Chapter");
             break;
         default:
-            console.error("Invalid state: " + state);
+            $("#preview").hide();
+            $("#main-content").hide();
+            $("#save-chapter").hide();
+            $("#discard-chapter").hide();
+            $("#new-topic-or-chapter").hide();
+            $("#topic-or-chapter-input").hide()
             break;
     }
 }
