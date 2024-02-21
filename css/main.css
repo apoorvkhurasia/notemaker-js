@@ -5,69 +5,104 @@
 
 html,
 body {
-    font-size: 1.0em;
     font-family: 'Open Sans', sans-serif;
     background-color: #ffffff;
-    width: 95%;
+    width: 100%;
     margin: auto;
 }
 
+.holy-grail-grid {
+    display: grid;
+    grid-template-areas:
+        'header'
+        'main-content'
+        'left-sidebar'
+        'right-sidebar'
+        'footer';
+}
+
+/* general column padding */
+.holy-grail-grid>* {
+    padding: 0.25rem;
+}
+
+/* assign columns to grid areas */
+.holy-grail-grid>.header {
+    grid-area: header;
+    background: #000000;
+    color: #ffffff;
+}
+
+.holy-grail-grid>.main-content {
+    grid-area: main-content;
+    background: #ffffff;
+}
+
+.holy-grail-grid>.left-sidebar {
+    grid-area: left-sidebar;
+    background: green;
+}
+
+.holy-grail-grid>.right-sidebar {
+    grid-area: right-sidebar;
+    background: red;
+}
+
+.holy-grail-grid>.footer {
+    grid-area: footer;
+}
+
+/* tablet breakpoint */
+@media (min-width:768px) {
+    .holy-grail-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            'header header'
+            'main-content main-content'
+            'left-sidebar right-sidebar'
+            'footer footer';
+    }
+}
+
+/* desktop breakpoint */
+@media (min-width:1024px) {
+    .holy-grail-grid {
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-areas:
+            'header header header header'
+            'left-sidebar main-content main-content right-sidebar'
+            'footer footer footer footer';
+    }
+}
+
+nav li {
+    display: inline-block;
+    cursor: pointer;
+    margin: 0.15rem;
+}
+
+nav ul {
+    text-align: left;
+    margin: 1px;
+}
+
+nav.block-element ul {
+    display: block;
+}
+
 #markdownInput {
-    width: 95%;
-    min-height: 10em;
-    margin-top: 0.5em;
-    margin-left: auto;
-    margin-right: auto;
     border: 0.1em solid;
-    padding: 1em;
-    font-family: monospace;
+    font-family: "Fira Code", monospace;
+    font-optical-sizing: auto;
+    font-weight: 300;
     font-size: 1.1em;
 }
 
-#parsedMarkdown {
-    visibility: hidden;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-#errorDetails {
-    width: 95%;
-    margin-top: 0.5em;
-    margin-left: auto;
-    margin-right: auto;
-    border: 0.1em solid red;
-    padding: 1em;
-    overflow: hidden;
-    word-wrap: break-word;
-}
-
-#displayArea1,
-#displayArea2 {
-    width: 100%;
-    margin-top: 0.5em;
-    margin-left: auto;
-    margin-right: auto;
-    border: 0.1em solid;
-    padding: 1em;
-}
-
-#container {
-    position: relative;
-    min-height: 100%;
-}
-
-#mainContent {
-    /* Height of the footer element + its bottom pos */
-    padding-bottom: 6em;
+#preview {
+    font-size: 1.1em;
 }
 
 #footer {
-    width: 100%;
-    height: 3em;
-    bottom: 3em;
-    left: 0;
-    position: absolute;
     text-align: center;
     font-size: 0.80em;
 }
@@ -100,62 +135,6 @@ h4 {
     font-size: 1.0em;
 }
 
-ul {
-    margin-top: 0;
-}
-
-.seperator {
-    border: none;
-    color: deepskyblue;
-    height: 0.05em;
-    /* Symmetrically fade from ends to the center */
-    background-image: -webkit-linear-gradient(left, rgb(255, 255, 200), deepskyblue, rgb(255, 255, 200));
-    background-image: -moz-linear-gradient(left, rgb(255, 255, 200), deepskyblue, rgb(255, 255, 200));
-    background-image: -ms-linear-gradient(left, rgb(255, 255, 200), deepskyblue, rgb(255, 255, 200));
-    background-image: -o-linear-gradient(left, rgb(255, 255, 200), deepskyblue, rgb(255, 255, 200));
-}
-
-nav li {
-    display: inline-block;
-    cursor: pointer;
-    padding: 0.25em;
-    margin: 0.5em;
-    border: none;
-    -webkit-border-radius: 0.25em;
-    -moz-border-radius: 0.25em;
-    border-radius: 0.25em;
-    font-size: 0.9em;
-}
-
-nav ul {
-    text-align: center;
-}
-
-nav.block-element ul {
-    display: block;
-    margin: auto;
-    width: 50%;
-}
-
-.horizontalList ul {
-    text-align: left;
-    list-style-type: none;
-    overflow-x: auto;
-    white-space: nowrap;
-    display: inline-block;
-    padding: 0;
-    margin: 0;
-}
-
-.horizontalList li {
-    margin: 0.5em;
-    margin-left: 0;
-    padding: 0.1em;
-    padding-left: 0;
-    float: left;
-    display: block;
-}
-
 .toggleButtonOff {
     background: #eeeeee;
     color: darkblue;
@@ -179,20 +158,4 @@ a:visited {
 a:hover {
     font-weight: bold;
     text-decoration: none;
-}
-
-@media screen and (min-width: 800px) {
-    .twoColumnLayout {
-        overflow: hidden;
-        width: 100%;
-    }
-
-    .twoColumnLayout>div {
-        float: left;
-        width: 48%;
-    }
-
-    .twoColumnLayout>.leftColumn {
-        margin-right: 4%;
-    }
 }

@@ -5,86 +5,41 @@
     <title>Notemaker</title>
     <meta name="author" content="Apoorv Khurasia" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Roboto+Slab:wght@100..900&display=swap"
-        rel="stylesheet">
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Roboto+Slab:wght@100..900&display=swap"
+        rel="stylesheet" />
     <link href="./css/main.css" rel="stylesheet" type="text/css" />
-    <link rel="manifest" href="/manifest.json">
-    <script type="text/javascript" src="./lib/jquery-3.7.1.min.js" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({ showProcessingMessages: false, tex2jax: { inlineMath: [['$','$']] } });
     </script>
     <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="./lib/jquery-3.7.1.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="./main.js"></script>
 </head>
 
 <body>
-    <button id='open-file'>Open</button>
-    <div id="container">
-        <div id="mainContent">
-            <h1 id="heading">Apoorv's Note Viewer</h1>
-            <p><a href="./index.html">Back to home</a></p>
-            <div id="allTopics">
-                <h2>Topics</h2>
-                <div id="topics">
-                </div>
-            </div>
-            <div id="topicContent">
-                <h2>Table of Contents</h2>
-                <p>Back to <a onclick="navToTopicList()">topic list.</a></p>
-
-                <div id="chapters">
-                </div>
-                <div id="chapterContent">
-                    <hr class="seperator" />
-                    <div id="editor">
-                        <div class="help">
-                            Edit your content in <a target="_blank"
-                                href="http://daringfireball.net/projects/markdown/syntax">Markdown syntax</a>. For
-                            compatibility with TeX _ will be escaped automatically. To make text italic or bold please
-                            use * instead. For mathematics enclose your content in TeX syntax as follows:
-                            <ul>
-                                <li>For inline mode: <code>$...$</code></li>
-                                <li>For display mode: <code>$$...$$</code></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <label>Editor Font Size</label>
-                            <button onclick="increaseInputFontSize()">+</button>
-                            <button onclick="decreaseInputFontSize()">-</button>
-                            <br />
-                            <label for="chapterName">Chapter Name</label>
-                            <input type="text" id="chapterName" name="chapterName" />
-                        </div>
-                        <textarea id="markdownInput" onkeyup="render()"></textarea>
-                        <button id="finishEdit" onclick="upsertChapter()">Finish Editing</button>
-                        <button id="cancelEdit" onclick="cancelEditChapter()">Cancel Editing</button>
-                        <div id="parsedMarkdown"></div>
-
-                        <h3>How it will look:</h3>
-                    </div>
-                    <a id="editLink" onclick="state(State.CHAPTER_EDIT)">Edit</a>
-                    <div id="displayArea1"></div>
-                    <div id="displayArea2"></div>
-                </div>
-            </div>
-            <div id="error">
-                <p>We have encountered an error. You can attempt to load the last known good state by using the permlink
-                    below but depending upon the nature of the error, that link may too throw an error.</p>
-                <a id="showHideErrLink" onclick="toggleErrorMsgDetails()">Show Technical Details</a>
-                <div id="errorDetails"></div>
-            </div>
-            <hr class="seperator" />
+    <div class="holy-grail-grid">
+        <nav class="header">
+            <ul>
+                <li id="open-store">Open a store</li>
+                <li id="new-chapter">New chapter</li>
+                <li id="save-chapter">Save changes</li>
+                <li id="discard-chapter">Discard changes</li>
+            </ul>
+        </nav>
+        <div id="explorer" class="left-sidebar">
+            <ul id="explorer-items"></ul>
         </div>
-        <div id="footer">
-            <p>Site designed by <a href="http://www.khurasia.com">Apoorv Khurasia</a>.<br /> I use <a
-                    href="https://github.com/evilstreak/markdown-js">markdown-js</a> and <a
-                    href="https://www.mathjax.org/">MathJax</a> to render my notes in beautiful typography on this
-                webpage. Visit their website to get started.<br /><a id="permlink" href="#">Permlink to this page.</a>
-            </p>
+        <div id="markdownInput" class="main-content"></div>
+        <div id="preview" class="right-sidebar"></div>
+        <div id="footer" class="footer">
+            <p>App designed by <a href="http://www.khurasia.com">Apoorv Khurasia</a>.</p>
         </div>
     </div>
 </body>

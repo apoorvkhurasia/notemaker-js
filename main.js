@@ -1,5 +1,5 @@
 import * as fs from "./lib/fs.js";
-import * as markdown from "./lib/markdown.min.js";
+import * as cmp from "./lib/components.js";
 
 const State = {
     TOPICS: "topics",
@@ -10,125 +10,43 @@ const State = {
     CHAPTER_EDIT_IN_PROGRESS: "chapter-edit-in-progress"
 }
 
-const Preview = {
-    delay: 150, // delay after keystroke before updating
-    preview: null, // filled in by Init below
-    buffer: null, // filled in by Init below
-    timeout: null, // store setTimout id
-    mjRunning: false, // true when MathJax is processing
-    mjPending: false, // true when a typeset has been queued
-    oldText: null, // used to check if an update is needed
-    //
-    //  Get the preview and buffer DIV's
-    //
-    Init: function () {
-        this.preview = document.getElementById("displayArea2");
-        this.buffer = document.getElementById("displayArea1");
-
-        $("#displayArea1").show();
-        $("#displayArea2").hide();
-    },
-    //
-    //  Switch the buffer and preview, and display the right one.
-    //
-    SwapBuffers: function () {
-        var buffer = this.preview,
-            preview = this.buffer;
-        this.buffer = buffer;
-        this.preview = preview;
-        $("#" + this.buffer.id).hide();
-        $("#" + this.preview.id).show();
-    },
-    //
-    //  This gets called when a key is pressed in the textarea.
-    //  We check if there is already a pending update and clear it if so.
-    //  Then set up an update to occur after a small delay (so if more keys
-    //    are pressed, the update won't occur until after there has been 
-    //    a pause in the typing).
-    //  The callback function is set up below, after the Preview object is set up.
-    //
-    Update: function () {
-        if (this.timeout) {
-            clearTimeout(this.timeout);
-        }
-        this.timeout = setTimeout(this.callback, this.delay);
-    },
-    //
-    //  Creates the preview and runs MathJax on it.
-    //  If MathJax is already trying to render the code, return
-    //  If the text hasn't changed, return
-    //  Otherwise, indicate that MathJax is running, and start the
-    //    typesetting.  After it is done, call PreviewDone.
-    //  
-    CreatePreview: function () {
-        Preview.timeout = null;
-        if (this.mjPending) {
-            return;
-        }
-        var text = document.getElementById("parsedMarkdown").innerHTML;
-        if (text === this.oldtext) {
-            return;
-        } else if (this.mjRunning) {
-            this.mjPending = true;
-            MathJax.Hub.Queue(["CreatePreview", this]);
-        } else {
-            this.buffer.innerHTML = this.oldtext = text;
-            this.mjRunning = true;
-            MathJax.Hub.Queue(
-                ["Typeset", MathJax.Hub, this.buffer], ["PreviewDone", this]
-            );
-        }
-    },
-    //
-    //  Indicate that MathJax is no longer running,
-    //  and swap the buffers to show the results.
-    //
-    PreviewDone: function () {
-        this.mjRunning = this.mjPending = false;
-        this.SwapBuffers();
-    }
-}
-
-var errorDetailsVisible = true;
+var currentContentRoot = null;
 var currentTopic = null;
 var currentChapter = null;
 
 $(function () {
-    const button = document.getElementById('open-file');
-    state(State.TOPICS);
-    button.addEventListener('click', async () => {
-        const dirHandle = await window.showDirectoryPicker();
-        await createTopicList(dirHandle);
-        initApp();
-    });
+    initApp();
+    // const increaseFontSizeBtn = document.getElementById("increase-font-size");
+    // increaseFontSizeBtn.addEventListener("click", increaseInputFontSize);
+
+    // const decreaseFontSizeBtn = document.getElementById("decrease-font-size");
+    // decreaseFontSizeBtn.addEventListener("click", decreaseInputFontSize);
 });
 
 function initApp() {
-    Preview.callback = MathJax.Callback(["CreatePreview", Preview]);
-    Preview.callback.autoReset = true; // make sure it can run more than once
-    Preview.Init();
-}
+    state(State.TOPICS);
+    const openFileLink = document.getElementById("open-store");
+    openFileLink.addEventListener("click", async () => {
+        currentContentRoot = await window.showDirectoryPicker();
+        await createTopicList(dirHandle);
+    });
 
-function createListItem(displayText, linkAction) {
-    const listItem = document.createElement("li");
-    if (linkAction) {
-        const linkElem = document.createElement("a");
-        linkElem.appendChild(document.createTextNode(displayText));
-        linkElem.onclick = linkAction;
-        listItem.appendChild(linkElem);
-    }
-    return listItem;
+    const markdownInputArea = document.getElementById("markdownInput");
+    markdownInputArea.addEventListener("onkeyup", render);
 }
-
 
 async function createTopicList(contentRootHandle) {
-    const topicListElem = document.createElement("ul");
+    const topicListElem = document.getElementById("explorer-items");
     const topics = await fs.getTopics(contentRootHandle);
     for (const topic of topics) {
-        topicListElem.appendChild(createListItem(
+        topicListElem.appendChild(cmp.createListItem(
             topic.displayName,
             async () => displayTopic(contentRootHandle, topic)));
     }
+
+    const topicListLink = document.getElementById("toplist-link");
+    topicListLink.removeEventListener("click");
+    topicListLink.addEventListener("click", async () => createTopicList(contentRootHandle));
 
     const newTopicCreateListItem = document.createElement("li");
     const newTopicCreationHintLabel = document.createElement("label");
@@ -202,7 +120,7 @@ function appendChapter() {
 }
 
 function updateTableOfContents(contentRootHandle, topic, chapterList) {
-    appendAsOnlyChild("#heading", document.createTextNode("Apoorv's Notes on " + topic.displayName));
+    appendAsOnlyChild("#heading", document.createTextNode("Notes on " + topic.displayName));
     const chapterListElems = document.createElement("ol");
     for (const chapterToDisplay of chapterList) {
         chapterListElems.appendChild(
@@ -217,6 +135,36 @@ function updateTableOfContents(contentRootHandle, topic, chapterList) {
     appendNewChapterElem.appendChild(document.createTextNode(" a new chapter on this topic."));
     chapterListElems.appendChild(appendNewChapterElem);
     appendAsOnlyChild("#chapters", chapterListElems);
+}
+
+async function upsertChapter(contentRootHandle) {
+    var chapterToSave = currentChapter;
+    if (!chapterToSave) {
+        chapterToSave = new Chapter(currentTopic, chapterName.value);
+    }
+    state(State.CHAPTER_EDIT_IN_PROGRESS);
+    try {
+        chapter = await fs.saveChapter(contentRootHandle, currentChapter, markdownInput.value);
+        displayChapter(contentRootHandle, chapter, false, true);
+    } catch (err) {
+        console.log(err);
+        state(State.ERROR, err);
+    } finally {
+        state(State.CHAPTER_EDIT_FINISHED);
+    }
+}
+
+async function cancelEditChapter(contentRootHandle) {
+    //Whenever we next go into edit mode; we will enable these buttons
+    $("#finishEdit").prop("disabled", true);
+    $("#cancelEdit").prop("disabled", true);
+    if (currentChapter) {
+        await displayChapter(contentRootHandle, currentChapter);
+    } else if (currentTopic) {
+        await displayTopic(currentTopic);
+    } else {
+        await createTopicList(contentRootHandle);
+    }
 }
 
 function appendAsOnlyChild(selector, childElem) {
@@ -236,25 +184,25 @@ function hideEditor() {
 
 function render() {
     var underScoreEscapedMarkdown = $("#markdownInput").val().replaceAll("_", "\\_");
-    var parsedHTML = underScoreEscapedMarkdown;
+    var parsedHTML = marked.parse(underScoreEscapedMarkdown);
     $("#parsedMarkdown").html(parsedHTML);
     Preview.Update();
 }
 
 function increaseInputFontSize() {
-    var currFontSize = parseInt($('#markdownInput').css("font-size").replace("px", ""));
-    $('#markdownInput').css("font-size", (currFontSize + 1) + "px");
+    var currFontSize = parseInt($("#markdownInput").css("font-size").replace("px", ""));
+    $("#markdownInput").css("font-size", (currFontSize + 1) + "px");
 }
 
 function decreaseInputFontSize() {
-    var currFontSize = parseInt($('#markdownInput').css("font-size").replace("px", ""));
-    $('#markdownInput').css("font-size", (currFontSize - 1) + "px");
+    var currFontSize = parseInt($("#markdownInput").css("font-size").replace("px", ""));
+    $("#markdownInput").css("font-size", (currFontSize - 1) + "px");
 }
 
 function cancelEditChapter() {
     //Whenever we next go into edit mode; we will enable these buttons
-    $("#finishEdit").prop('disabled', true);
-    $("#cancelEdit").prop('disabled', true);
+    $("#finishEdit").prop("disabled", true);
+    $("#cancelEdit").prop("disabled", true);
     if (currentChapter) {
         displayChapter(currentChapter);
     } else if (currentTopic) {
@@ -285,7 +233,7 @@ function toggleErrorMsgDetails() {
 }
 
 function state(state, errorTechDetails) {
-    if (typeof (errorTechDetails) === 'undefined') errorTechDetails = "No technical details available.";
+    if (typeof (errorTechDetails) === "undefined") errorTechDetails = "No technical details available.";
     switch (state) {
         case State.TOPICS:
             $("#allTopics").show();
@@ -309,18 +257,18 @@ function state(state, errorTechDetails) {
             $("#allTopics").hide();
             $("#chapterContent").show();
             $("#topicContent").show();
-            $("#finishEdit").prop('disabled', false);
-            $("#cancelEdit").prop('disabled', false);
+            $("#finishEdit").prop("disabled", false);
+            $("#cancelEdit").prop("disabled", false);
             $("#error").hide();
             showEditor();
             break;
         case State.CHAPTER_EDIT_FINISHED:
-            $("#finishEdit").prop('disabled', false);
-            $("#cancelEdit").prop('disabled', false);
+            $("#finishEdit").prop("disabled", false);
+            $("#cancelEdit").prop("disabled", false);
             break;
         case State.CHAPTER_EDIT_IN_PROGRESS:
-            $("#finishEdit").prop('disabled', true);
-            $("#cancelEdit").prop('disabled', true);
+            $("#finishEdit").prop("disabled", true);
+            $("#cancelEdit").prop("disabled", true);
             break;
         case State.ERROR:
             $("#allTopics").hide();
