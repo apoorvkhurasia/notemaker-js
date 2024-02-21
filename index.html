@@ -27,16 +27,17 @@
     <div class="holy-grail-grid">
         <nav class="header">
             <ul>
-                <li id="open-store">Open a store</li>
-                <li id="new-chapter">New chapter</li>
-                <li id="save-chapter">Save changes</li>
-                <li id="discard-chapter">Discard changes</li>
+                <li><a id="open-store">Open a store</a></li>
+                <li><a id="new-topic-or-chapter">New chapter</a></li>
+                <li><a id="save-chapter">Save changes</a></li>
+                <li><a id="discard-chapter">Discard changes</a></li>
             </ul>
         </nav>
         <div id="explorer" class="left-sidebar">
             <ul id="explorer-items"></ul>
         </div>
-        <div id="markdownInput" class="main-content"></div>
+        <input id="topic-or-chapter-input" type="text" visibility="hidden" />
+        <textarea id="markdownInput" class="main-content"></textarea>
         <div id="preview" class="right-sidebar"></div>
         <div id="footer" class="footer">
             <p>App designed by <a href="http://www.khurasia.com">Apoorv Khurasia</a>.</p>
