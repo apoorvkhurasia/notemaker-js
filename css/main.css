@@ -5,70 +5,78 @@
 
 html,
 body {
-    font-family: 'Open Sans', sans-serif;
+    font-family: "Open Sans", sans-serif;
     background-color: #ffffff;
     width: 100%;
     margin: auto;
 }
 
-.holy-grail-grid {
+code,
+pre,
+tt,
+kbd,
+samp {
+    font-family: "Fira Code", monospace;
+}
+
+.ide-styled-grid {
     display: grid;
     grid-template-areas:
-        'header'
-        'left-sidebar'
-        'main-content'
-        'right-sidebar'
-        'footer';
+        "menubar"
+        "left-sidebar"
+        "editor-area"
+        "formatted-content"
+        "footer";
 }
 
 /* general column padding */
-.holy-grail-grid>* {
+.ide-styled-grid>* {
     padding: 0.3rem;
 }
 
 /* assign columns to grid areas */
-.holy-grail-grid>.header {
-    grid-area: header;
+.ide-styled-grid>.menubar {
+    grid-area: menubar;
     background: #000000;
     color: #ffffff;
 }
 
-.holy-grail-grid>.main-content {
-    grid-area: main-content;
+.ide-styled-grid>.editor-area {
+    grid-area: editor-area;
     min-height: 300px;
 }
 
-.holy-grail-grid>.left-sidebar {
+.ide-styled-grid>.left-sidebar {
     grid-area: left-sidebar;
 }
 
-.holy-grail-grid>.right-sidebar {
-    grid-area: right-sidebar;
+.ide-styled-grid>.formatted-content {
+    grid-area: formatted-content;
 }
 
-.holy-grail-grid>.footer {
+.ide-styled-grid>.footer {
     grid-area: footer;
 }
 
 /* tablet breakpoint */
 @media (min-width:768px) {
-    .holy-grail-grid {
+    .ide-styled-grid {
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
-            'header left-sidebar'
-            'main-content right-sidebar'
-            'footer footer';
+            "menubar left-sidebar"
+            "editor-area formatted-content"
+            "footer footer";
     }
 }
 
 /* desktop breakpoint */
 @media (min-width:1024px) {
-    .holy-grail-grid {
+    .ide-styled-grid {
         grid-template-columns: repeat(5, 1fr);
         grid-template-areas:
-            'header header header header header'
-            'left-sidebar main-content main-content right-sidebar right-sidebar'
-            'footer footer footer footer footer';
+            "menubar menubar menubar menubar menubar"
+            "left-sidebar editor-area editor-area formatted-content formatted-content"
+            "footer footer footer footer footer";
     }
 }
 
@@ -87,12 +95,15 @@ nav.block-element ul {
     display: block;
 }
 
+#topic-or-chapter-input {
+    font-family: "Open Sans", sans-serif;
+}
+
 #markdownInput {
-    border: 0.1em solid;
+    border: 1px solid;
     font-family: "Fira Code", monospace;
     font-optical-sizing: auto;
     font-weight: 300;
-    font-size: 1.1em;
     width: 100%;
     height: 100%;
 }
@@ -108,10 +119,6 @@ nav.block-element ul {
     font-optical-sizing: auto;
     font-weight: 300;
     font-size: 1.0em;
-}
-
-#preview {
-    font-size: 1.1em;
 }
 
 #footer {

@@ -141,14 +141,14 @@ function setState(state) {
     switch (state) {
         case State.TOPICS:
             $("#preview").hide();
-            $("#main-content").hide();
+            $("#editor-area").hide();
             $("#save-chapter").hide();
             $("#discard-chapter").hide();
             $("#new-topic-or-chapter").show();
             $("#new-topic-or-chapter").text("New Topic");
             break;
         case State.CHAPTER_LIST:
-            $("#main-content").show();
+            $("#editor-area").show();
             $("#preview").show();
             $("#markdownInput").show();
             $("#save-chapter").show();
@@ -158,7 +158,7 @@ function setState(state) {
             break;
         default:
             $("#preview").hide();
-            $("#main-content").hide();
+            $("#editor-area").hide();
             $("#save-chapter").hide();
             $("#discard-chapter").hide();
             $("#new-topic-or-chapter").hide();
