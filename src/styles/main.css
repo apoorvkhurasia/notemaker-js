@@ -1,8 +1,3 @@
-/**
- * Designed by Apoorv Khurasia 2013
- * Released to public domain.
- */
-
 html,
 body {
     font-family: "Open Sans", sans-serif;
@@ -163,6 +158,18 @@ h4 {
     background: darkblue;
     color: #eeeeee;
 }
+
+/* .button {
+    @apply border-2;
+    @apply border-gray-300;
+    @apply rounded-lg;
+    @apply px-3 py-1;
+    @apply mb-3 mr-3;
+}
+
+.button:hover {
+    @apply border-green-300;
+} */
 
 a,
 a:link,

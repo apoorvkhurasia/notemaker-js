@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist",
+        "allowJs": true,
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "jsx": "react",
+        "sourceMap": true,
+    },
+    "lib": [
+        "esnext",
+        "dom",
+        "dom.iterable",
+        "dom.asynciterable",
+        "marked"
+    ],
+    "include": [
+        "./src/**/*"
+    ],
+}
