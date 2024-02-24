@@ -11,57 +11,76 @@ var currentChapter: model.Chapter = null;
 var explorer: exp.ExplorerView = null;
 var content: cnt.ContentViewer = null;
 
+enum CreateMode {
+    TOPIC,
+    CHAPTER
+}
+
+var createMode = CreateMode.TOPIC;
+
 $(function () {
+    const explorerItems = document.getElementById("explorer-items");
+    explorer = new exp.ExplorerView(explorerItems);
+    explorerItems.addEventListener("chapterChanged",
+        async (ev: CustomEvent<model.Chapter>) => await displayChapter(ev.detail));
+    const markdownInputArea = document.getElementById("markdownInput");
+    content = new cnt.ContentViewer(
+        markdownInputArea as HTMLTextAreaElement,
+        document.getElementById("preview"));
+
+    const newTopicLink = $("#new-topic");
+    newTopicLink.on("click", () => initCreate(CreateMode.TOPIC));
+    newTopicLink.hide();
+
+    const newChapterLink = $("#new-chapter");
+    newChapterLink.on("click", () => initCreate(CreateMode.CHAPTER));
+    newChapterLink.hide();
+
+    $("#topic-or-chapter-input-form").hide();
+    $("#save-chapter").hide();
+    $("#discard-chapter").hide();
+
     const openFileLink = document.getElementById("open-store");
     openFileLink.addEventListener("click", async () => {
         const storeDirectoryHandle = await window.showDirectoryPicker();
         await createTableOfContents(storeDirectoryHandle);
+        newTopicLink.show();
     });
 
-    explorer = new exp.ExplorerView(document.getElementById("explorer-items"));
-    content = new cnt.ContentViewer(
-        document.getElementById("markdownInput"),
-        document.getElementById("preview"));
-
-    const newItemLink = document.getElementById("new-topic-or-chapter");
-    newItemLink.addEventListener("click", getTopicOrChapterNameFromUser);
-
     document.getElementById("confirmTopicOrChapterCreationBtn")
-        .addEventListener("click", createNewTopicOrChapter);
+        .addEventListener("click", finishCreateChapterOrTopic);
 
     document.getElementById("cancelCreateTopicOrChapterBtn")
         .addEventListener("click", cancelCreateTopicOrChapter);
 });
 
-function getTopicOrChapterNameFromUser() {
+function initCreate(mode: CreateMode): void {
+    createMode = mode;
     $("#topic-or-chapter-input").val("");
+    $("#topic-or-chapter-input-label").val("Topic Name");
     $("#topic-or-chapter-input-form").show();
 }
 
-async function createNewTopicOrChapter(): Promise<void> {
-    // if (!currStoreDirectoryHandle) return;
-
-    // const contentRootHandle = currStoreDirectoryHandle;
-    // const userInput = $("#topic-or-chapter-input").val();
-    // if (!userInput) {
-    //     return;
-    // }
-
-    // const explorerListElem = document.getElementById("explorer-items");
-    // if (currentState === State.TOPICS) {
-    //     const topic = await fs.createNewTopic(contentRootHandle, userInput);
-    //     explorerListElem.appendChild(cmp.createListItem(
-    //         topic.displayName,
-    //         async () => displayTopic(topic)));
-    // } else if (currentState === State.CHAPTER_LIST && currentTopic) {
-    //     const chapter = await fs.createNewChapter(contentRootHandle, currentTopic, userInput);
-    //     explorerListElem.appendChild(cmp.createListItem(
-    //         chapter.displayName,
-    //         async () => displayChapter(chapter)));
-    //     displayChapter(chapter);
-    // }
-
-    // $("#topic-or-chapter-input-form").hide();
+async function finishCreateChapterOrTopic(): Promise<void> {
+    const contentRootHandle = currStoreDirectoryHandle;
+    const userInput = $("#topic-or-chapter-input").val();
+    if (typeof userInput === "string") {
+        switch (createMode) {
+            case CreateMode.TOPIC:
+                const topic = await fs.createNewTopic(contentRootHandle, userInput);
+                explorer.onTopicCreated(topic);
+                break;
+            case CreateMode.CHAPTER:
+                const currentTopic = currentChapter.getTopic();
+                const chapter = await fs.createNewChapter(contentRootHandle, currentTopic, userInput);
+                explorer.onChapterCreated(chapter);
+                displayChapter(chapter);
+                break;
+            default:
+                break;
+        }
+    }
+    $("#topic-or-chapter-input-form").hide();
 }
 
 async function cancelCreateTopicOrChapter(): Promise<void> {
@@ -82,6 +101,7 @@ async function displayChapter(chapter: model.Chapter): Promise<void> {
         const rawText = await fs.getChapterRawText(currStoreDirectoryHandle, chapter);
         content.setContent(rawText);
     }
+    $("#new-chapter").show();
 }
 
 function clearChapterContent(): void {

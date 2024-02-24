@@ -76,7 +76,7 @@ export class Chapter {
         this.topic = newTopic;
         for (const obs of this.observers) {
             try {
-                obs.onChapterMove(oldTopic, newTopic);
+                obs.onChapterMove(this, oldTopic);
             } catch (err) {
                 //Swallow, the observers shouldn't be throwing them anyway
             }
@@ -90,5 +90,11 @@ export class Chapter {
 }
 
 export interface ChapterObserver {
-    onChapterMove(oldTopic: Topic, newTopic: Topic): void;
+    onChapterCreated(chapter: Chapter): void;
+    onChapterMove(chapter: Chapter, oldTOpic: Topic): void;
+}
+
+export interface TopicObserver {
+    onTopicRemoved(topic: Topic): void;
+    onTopicCreated(topic: Topic): void;
 }

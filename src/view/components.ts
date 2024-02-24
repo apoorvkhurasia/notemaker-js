@@ -1,11 +1,11 @@
-export const hiddenClassName: string = ".hidden";
+import * as $ from "jquery";
 
 export function toggleElemVisibility(element: Element): void {
-    if (element.classList.contains(this.hiddenClassName)) {
-        element.classList.add(this.hiddenClassName);
-    }
-    else {
-        element.classList.remove(this.hiddenClassName);
+    const selector = $(element);
+    if (selector.is(":visible")) {
+        selector.hide(250);
+    } else {
+        selector.show(250);
     }
 }
 
@@ -18,7 +18,7 @@ export function createListItem(document: Document,
     if (clickAction !== null) {
         const linkElem = document.createElement("a");
         linkElem.appendChild(document.createTextNode(displayText));
-        linkElem.onclick = clickAction;
+        linkElem.addEventListener("click", clickAction);
         listItem.appendChild(linkElem);
     }
     return listItem;

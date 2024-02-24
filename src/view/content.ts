@@ -3,24 +3,25 @@ import * as $ from "jquery";
 
 export class ContentViewer {
 
-    private rawMarkdownEditorElement: Element;
+    private rawMarkdownEditorElement: HTMLTextAreaElement;
     private renderedHtmlElement: Element;
 
     public constructor(
-        rawMarkdownEditorElement: Element,
+        rawMarkdownEditorElement: HTMLTextAreaElement,
         renderedHtmlElement: Element) {
         this.rawMarkdownEditorElement = rawMarkdownEditorElement;
-        this.rawMarkdownEditorElement.addEventListener("input", this.render);
+        this.rawMarkdownEditorElement.addEventListener("input", async () => await this.render());
         this.renderedHtmlElement = renderedHtmlElement;
     }
 
     public setContent(markdownText: string): void {
-        this.rawMarkdownEditorElement.textContent = markdownText;
+        this.rawMarkdownEditorElement.value = markdownText;
+        this.render();
     }
 
     private async render() {
-        const parsedHTML = await parse(
-            this.rawMarkdownEditorElement.textContent);
+        const rawText = this.rawMarkdownEditorElement.value;
+        const parsedHTML = await parse(rawText);
         this.renderedHtmlElement.innerHTML = parsedHTML;
     }
 

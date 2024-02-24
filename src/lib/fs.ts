@@ -38,7 +38,7 @@ export async function getTopics(storeDirectoryHandle: FileSystemDirectoryHandle)
     for await (const [, handle] of storeDirectoryHandle.entries()) {
         if (handle.kind === "directory") {
             const metadata = await getMetadata(handle);
-            if (metadata) {
+            if (metadata !== null && metadata.id !== null && metadata.displayName !== null) {
                 const topic = new model.Topic(
                     metadata.id,
                     metadata.displayName);
@@ -65,12 +65,12 @@ export async function getChapterRawText(contentRootHandle: FileSystemDirectoryHa
 
 export async function createNewTopic(contentRootHandle: FileSystemDirectoryHandle,
     topicName: string): Promise<model.Topic> {
-    const topicHandle = await contentRootHandle.getDirectoryHandle(topicName, { create: true });
+    const topicId = topicName.replaceAll("\s+", "-");
+    const topicHandle = await contentRootHandle.getDirectoryHandle(topicId, { create: true });
     const metadataFileHandle = await topicHandle.getFileHandle("manifest.json", { create: true });
     const metadataWritable = await metadataFileHandle.createWritable();
     try {
-
-        const topic = new model.Topic(topicName, topicName);
+        const topic = new model.Topic(topicId, topicName);
         await metadataWritable.write(JSON.stringify(topic));
         return topic;
     } finally {
