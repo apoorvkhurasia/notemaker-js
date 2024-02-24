@@ -23,9 +23,9 @@ $(function () {
     explorer = new exp.ExplorerView(explorerItems);
     explorerItems.addEventListener("chapterChanged",
         async (ev: CustomEvent<model.Chapter>) => await displayChapter(ev.detail));
-    const markdownInputArea = document.getElementById("markdownInput");
+    const markdownInputArea = document.getElementById("markdownInput") as HTMLTextAreaElement;
     content = new cnt.ContentViewer(
-        markdownInputArea as HTMLTextAreaElement,
+        markdownInputArea,
         document.getElementById("preview"));
 
     const newTopicLink = $("#new-topic");
@@ -37,8 +37,15 @@ $(function () {
     newChapterLink.hide();
 
     $("#topic-or-chapter-input-form").hide();
-    $("#save-chapter").hide();
-    $("#discard-chapter").hide();
+    const saveChapterLink = $("#save-chapter");
+    saveChapterLink.on("click",
+        async () => await fs.saveChapter(
+            currStoreDirectoryHandle, currentChapter, markdownInputArea.value));
+    saveChapterLink.hide();
+
+    const discardChapterLink = $("#discard-chapter");
+    discardChapterLink.on("click", async () => await displayChapter(currentChapter));
+    discardChapterLink.hide();
 
     const openFileLink = document.getElementById("open-store");
     openFileLink.addEventListener("click", async () => {
@@ -102,6 +109,8 @@ async function displayChapter(chapter: model.Chapter): Promise<void> {
         content.setContent(rawText);
     }
     $("#new-chapter").show();
+    $("#save-chapter").show();
+    $("#discard-chapter").show();
 }
 
 function clearChapterContent(): void {

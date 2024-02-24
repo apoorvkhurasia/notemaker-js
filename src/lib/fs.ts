@@ -88,3 +88,14 @@ export async function createNewChapter(contentRootHandle: FileSystemDirectoryHan
     chapter.moveTo(topic);
     return chapter;
 }
+
+export async function saveChapter(contentRootHandle: FileSystemDirectoryHandle,
+    chapter: model.Chapter, rawText: string): Promise<void> {
+    const chapterHandle = await getChapterFileHandle(contentRootHandle, chapter, false);
+    const writable = await chapterHandle.createWritable();
+    try {
+        await writable.write(rawText);
+    } finally {
+        await writable.close();
+    }
+}
