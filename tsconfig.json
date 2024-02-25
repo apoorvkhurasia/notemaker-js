@@ -1,22 +1,16 @@
 {
-    "compilerOptions": {
-        "outDir": "./dist",
-        "allowJs": true,
-        "target": "esnext",
-        "module": "esnext",
-        "moduleResolution": "node",
-        "noImplicitAny": true,
-        "jsx": "react",
-        "sourceMap": true,
-    },
-    "lib": [
-        "esnext",
-        "dom",
-        "dom.iterable",
-        "dom.asynciterable",
-        "marked"
-    ],
-    "include": [
-        "./src/**/*"
-    ],
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "allowJs": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "jsx": "react",
+    "sourceMap": true,
+    "lib": ["es2023", "dom", "dom.iterable"]
+  },
+  "lib": ["marked", "dom.asynciterable"],
+  "include": ["./src/**/*"]
 }
