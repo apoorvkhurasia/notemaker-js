@@ -9,6 +9,7 @@
     "noImplicitAny": true,
     "jsx": "react",
     "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
     "lib": ["es2023", "dom", "dom.iterable"]
   },
   "lib": ["marked", "dom.asynciterable"],

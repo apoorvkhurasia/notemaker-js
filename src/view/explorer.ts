@@ -4,41 +4,27 @@ import * as cmp from './components';
 export class ExplorerView
   implements model.ChapterObserver, model.TopicObserver
 {
-  private htmlRootElem: Element;
+  private htmlRootElem: HTMLUListElement;
 
-  public constructor(htmlRootElem: Element) {
+  public constructor(htmlRootElem: HTMLUListElement) {
     this.htmlRootElem = htmlRootElem;
   }
 
   public onTopicRemoved(topic: model.Topic): void {
     const ownerDocument = this.htmlRootElem.ownerDocument;
-    if (this.htmlRootElem !== null) {
-      const topicListElem = ownerDocument.getElementById('topic-list');
-      if (topicListElem !== null) {
-        const topicElem = ownerDocument.getElementById(
-          this.getTopicNodeIdentifier(topic)
-        );
-        if (topicElem !== null) {
-          topicListElem.removeChild(topicElem);
-        }
-        if (topicListElem.children.length === 0) {
-          this.htmlRootElem.removeChild(topicListElem);
-        }
-      }
+    const topicElem = ownerDocument.getElementById(
+      this.getTopicNodeIdentifier(topic)
+    );
+    if (topicElem !== null) {
+      this.htmlRootElem.removeChild(topicElem);
     }
   }
 
   public onTopicCreated(topic: model.Topic): void {
     const ownerDocument = this.htmlRootElem.ownerDocument;
-    if (this.htmlRootElem !== null) {
-      let topicListElem = ownerDocument.getElementById('topic-list');
-      if (topicListElem === null) {
-        topicListElem = ownerDocument.createElement('ul');
-        topicListElem.id = 'topic-list';
-        this.htmlRootElem.appendChild(topicListElem);
-      }
-      topicListElem.appendChild(this.createTopicElement(topic, ownerDocument));
-    }
+    this.htmlRootElem.appendChild(
+      this.createTopicElement(topic, ownerDocument)
+    );
   }
 
   public init(topics: Array<model.Topic>): void {
@@ -46,12 +32,11 @@ export class ExplorerView
     while (this.htmlRootElem.firstChild !== null) {
       this.htmlRootElem.removeChild(this.htmlRootElem.firstChild);
     }
-    const topicListElem = ownerDocument.createElement('ul');
-    topicListElem.id = 'topic-list';
     for (const topic of topics) {
-      topicListElem.appendChild(this.createTopicElement(topic, ownerDocument));
+      this.htmlRootElem.appendChild(
+        this.createTopicElement(topic, ownerDocument)
+      );
     }
-    this.htmlRootElem.appendChild(topicListElem);
   }
 
   public onChapterCreated(chapter: model.Chapter): void {
@@ -117,34 +102,19 @@ export class ExplorerView
     chapter: model.Chapter,
     ownerDocument: Document
   ): Element {
-    const listItem = ownerDocument.createElement('li');
-    listItem.id = this.getChapterNodeIdentifier(chapter);
-    const linkElem = ownerDocument.createElement('a');
-    linkElem.appendChild(
-      ownerDocument.createTextNode(chapter.getDisplayName())
+    return cmp.createListItem(
+      ownerDocument,
+      chapter.getDisplayName(),
+      this.getChapterNodeIdentifier(chapter),
+      elem =>
+        elem.dispatchEvent(
+          new CustomEvent<model.Chapter>('chapterChanged', {
+            detail: chapter,
+            bubbles: true,
+            cancelable: false,
+            composed: false,
+          })
+        )
     );
-    linkElem.addEventListener('click', () => {
-      linkElem.dispatchEvent(
-        new CustomEvent<model.Chapter>('chapterChanged', {
-          detail: chapter,
-          bubbles: true,
-          cancelable: false,
-          composed: false,
-        })
-      );
-    });
-    listItem.appendChild(linkElem);
-    return listItem;
-    // return cmp.createListItem(
-    //     ownerDocument,
-    //     chapter.getDisplayName(),
-    //     this.getChapterNodeIdentifier(chapter),
-    //     (e) => dispatchEvent(new CustomEvent<model.Chapter>(
-    //         'chapterChanged', {
-    //         detail: chapter,
-    //         bubbles: true,
-    //         cancelable: false,
-    //         composed: false
-    //     })));
   }
 }

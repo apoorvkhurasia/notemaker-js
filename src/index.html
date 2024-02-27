@@ -10,54 +10,37 @@
   </head>
 
   <body>
+    <nav class="menubar">
+      <ul>
+        <li>
+          <a id="open-store" class="material-symbols-outlined">folder_open</a>
+        </li>
+        <li>
+          <a id="new-topic" class="material-symbols-outlined"
+            >create_new_folder</a
+          >
+        </li>
+        <li>
+          <a id="new-chapter" class="material-symbols-outlined">new_window</a>
+        </li>
+        <li>
+          <a id="save-chapter" class="material-symbols-outlined">save</a>
+        </li>
+        <li>
+          <a id="discard-chapter" class="material-symbols-outlined">cancel</a>
+        </li>
+      </ul>
+    </nav>
     <div class="ide-styled-grid">
-      <nav class="menubar">
-        <ul>
-          <li>
-            <a id="open-store" class="material-symbols-outlined">folder_open</a>
-          </li>
-          <li>
-            <a id="new-topic" class="material-symbols-outlined"
-              >create_new_folder</a
-            >
-          </li>
-          <li>
-            <a id="new-chapter" class="material-symbols-outlined">new_window</a>
-          </li>
-          <li>
-            <a id="save-chapter" class="material-symbols-outlined">save</a>
-          </li>
-          <li>
-            <a id="discard-chapter" class="material-symbols-outlined">cancel</a>
-          </li>
-        </ul>
-      </nav>
       <div id="explorer" class="left-sidebar">
         <ul id="explorer-items"></ul>
       </div>
-      <div class="editor-area">
-        <div id="topic-or-chapter-input-form">
-          <label id="topic-or-chapter-hint"><b>Name</b></label>
-          <input id="topic-or-chapter-input" type="text" />
-          <button
-            id="confirmTopicOrChapterCreationBtn"
-            class="material-symbols-outlined"
-          >
-            check
-          </button>
-          <button
-            id="cancelCreateTopicOrChapterBtn"
-            class="material-symbols-outlined"
-          >
-            cancel
-          </button>
-        </div>
-        <textarea id="markdownInput"></textarea>
-      </div>
+      <textarea id="markdownInput" class="editor-area"></textarea>
       <div id="preview" class="formatted-content"></div>
-      <div id="footer" class="footer">
-        <p>App designed by Apoorv Khurasia.</p>
-      </div>
+    </div>
+    <div id="footer" class="footer">
+      <label style="text-align: left">Word count:</label>
+      <label style="text-align: left">190</label>
     </div>
   </body>
 </html>

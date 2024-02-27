@@ -4,6 +4,8 @@ import * as model from './lib/model';
 import * as exp from './view/explorer';
 import * as cnt from './view/content';
 
+require('./styles/fonts.css');
+require('./styles/layout.css');
 require('./styles/main.css');
 
 enum CreateMode {
@@ -18,7 +20,7 @@ type EditorState = {
 };
 
 type DocumentTree = {
-  explorerItems: HTMLElement;
+  explorerItems: HTMLUListElement;
   mdInput: HTMLTextAreaElement;
   previewArea: HTMLElement;
   openStoreLink: HTMLAnchorElement;
@@ -26,8 +28,6 @@ type DocumentTree = {
   newTopicLink: HTMLAnchorElement;
   saveChapterLink: HTMLAnchorElement;
   discardChapterLink: HTMLAnchorElement;
-  topicOrChapterNameConfirmBtn: HTMLButtonElement;
-  topicOrChapterCancelCreationBtn: HTMLButtonElement;
 };
 
 let documentTree: DocumentTree;
@@ -37,24 +37,16 @@ let content: cnt.ContentViewer;
 
 $(() => {
   documentTree = {
-    openStoreLink: document.getElementById('open-store') as HTMLAnchorElement,
-    explorerItems: document.getElementById('explorer-items') as HTMLElement,
-    mdInput: document.getElementById('markdownInput') as HTMLTextAreaElement,
-    previewArea: document.getElementById('preview') as HTMLElement,
-    newChapterLink: document.getElementById('new-chapter') as HTMLAnchorElement,
-    newTopicLink: document.getElementById('new-topic') as HTMLAnchorElement,
-    saveChapterLink: document.getElementById(
-      'save-chapter'
-    ) as HTMLAnchorElement,
-    discardChapterLink: document.getElementById(
-      'discard-chapter'
-    ) as HTMLAnchorElement,
-    topicOrChapterNameConfirmBtn: document.getElementById(
-      'confirmTopicOrChapterCreationBtn'
-    ) as HTMLButtonElement,
-    topicOrChapterCancelCreationBtn: document.getElementById(
-      'cancelCreateTopicOrChapterBtn'
-    ) as HTMLButtonElement,
+    openStoreLink: <HTMLAnchorElement>document.getElementById('open-store'),
+    explorerItems: <HTMLUListElement>document.getElementById('explorer-items'),
+    mdInput: <HTMLTextAreaElement>document.getElementById('markdownInput'),
+    previewArea: <HTMLElement>document.getElementById('preview'),
+    newChapterLink: <HTMLAnchorElement>document.getElementById('new-chapter'),
+    newTopicLink: <HTMLAnchorElement>document.getElementById('new-topic'),
+    saveChapterLink: <HTMLAnchorElement>document.getElementById('save-chapter'),
+    discardChapterLink: <HTMLAnchorElement>(
+      document.getElementById('discard-chapter')
+    ),
   };
 
   explorer = new exp.ExplorerView(documentTree.explorerItems);
@@ -91,17 +83,8 @@ $(() => {
 
   $(documentTree.newTopicLink).hide();
   $(documentTree.newChapterLink).hide();
-  $('#topic-or-chapter-input-form').hide();
   $(documentTree.saveChapterLink).hide();
   $(documentTree.discardChapterLink).hide();
-
-  documentTree.topicOrChapterNameConfirmBtn.addEventListener('click', () =>
-    finishCreateChapterOrTopic()
-  );
-
-  documentTree.topicOrChapterCancelCreationBtn.addEventListener('click', () =>
-    cancelCreateTopicOrChapter()
-  );
 });
 
 async function saveCurrentChapter(): Promise<void> {
@@ -119,9 +102,6 @@ async function saveCurrentChapter(): Promise<void> {
 
 function initCreate(mode: CreateMode): void {
   editorState.createMode = mode;
-  $('#topic-or-chapter-input').val('');
-  $('#topic-or-chapter-input-label').val('Topic Name');
-  $('#topic-or-chapter-input-form').show();
 }
 
 async function finishCreateChapterOrTopic(): Promise<void> {
@@ -152,11 +132,6 @@ async function finishCreateChapterOrTopic(): Promise<void> {
         break;
     }
   }
-  $('#topic-or-chapter-input-form').hide();
-}
-
-async function cancelCreateTopicOrChapter(): Promise<void> {
-  $('#topic-or-chapter-input-form').hide();
 }
 
 async function openStore(): Promise<void> {
@@ -171,7 +146,7 @@ async function openStore(): Promise<void> {
   const topics = await fs.getTopics(storeDirectoryHandle);
   topics.sort();
   explorer.init(topics);
-  content.setContent('');
+  await content.setContent('');
 }
 
 async function displayChapter(chapter: model.Chapter): Promise<void> {
@@ -181,7 +156,7 @@ async function displayChapter(chapter: model.Chapter): Promise<void> {
       editorState.currStoreDirectoryHandle,
       chapter
     );
-    content.setContent(rawText);
+    await content.setContent(rawText);
   }
   $('#new-chapter').show();
   $('#save-chapter').show();

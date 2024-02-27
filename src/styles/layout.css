@@ -1,0 +1,18 @@
+.ide-styled-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-column-gap: 1rem;
+}
+
+.ide-styled-grid > .left-sidebar {
+  grid-column: 1;
+}
+
+.ide-styled-grid > .editor-area {
+  padding-top: 1rem;
+  grid-column: 2/6;
+}
+
+.ide-styled-grid > .formatted-content {
+  grid-column: 6/10;
+}
