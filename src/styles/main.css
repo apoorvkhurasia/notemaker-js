@@ -3,6 +3,7 @@ body {
   font-family: 'Open Sans', sans-serif;
   background-color: #ffffff;
   width: 100%;
+  height: 100%;
   margin: auto;
 }
 
@@ -48,7 +49,7 @@ nav li {
 nav ul {
   text-align: left;
   margin: 1px;
-  padding-inline-start: 20px;
+  padding-inline-start: 2px;
 }
 
 nav.block-element ul {
@@ -56,15 +57,38 @@ nav.block-element ul {
 }
 
 #explorer {
-  font-size: 0.8em;
+  font-size: 0.85em;
   border: none;
   border-right: solid black;
   padding-right: 1em;
-}
-
-#explorer > ul,
-#explorer > ol {
-  padding-inline-start: 20px;
+  padding-left: 1em;
+  width: 150px;
+  ul {
+    list-style: none;
+    padding-inline-start: 3px;
+  }
+  li.chapter {
+    border-left: 2px solid #ddd;
+    padding-left: 10px;
+  }
+  li > a > span {
+    display: block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 100%;
+    white-space: nowrap;
+  }
+  li.chapter:hover,
+  li.chapter:active,
+  li.chapter:focus,
+  .selected {
+    background-color: #ddd;
+    font-weight: normal;
+    text-decoration: none;
+  }
+  a:hover {
+    font-weight: normal;
+  }
 }
 
 #topic-or-chapter-input-form {
@@ -112,6 +136,7 @@ nav.block-element ul {
   border-right: 10px #302f2f;
   border: none;
   font-family: 'Fira Code', monospace;
+  font-size: 1em;
 }
 
 #footer {

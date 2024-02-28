@@ -151,6 +151,7 @@ async function openStore(): Promise<void> {
 
 async function displayChapter(chapter: model.Chapter): Promise<void> {
   editorState.currentChapter = chapter;
+  explorer.onChapterSelected(chapter);
   if (chapter !== null) {
     const rawText = await fs.getChapterRawText(
       editorState.currStoreDirectoryHandle,
