@@ -71,23 +71,18 @@ export class ExplorerView
     //TODO: Implement when adding support for drag drop
   }
 
-  private getTopicNodeIdentifier(topic: model.Topic): string {
-    return 'topic-' + topic.getId();
-  }
-
-  private getChapterNodeIdentifier(chapter: model.Chapter): string {
-    return 'chapter-' + chapter.getTopic().getId() + '-' + chapter.getId();
-  }
-
   private createTopicElement(
     topic: model.Topic,
     ownerDocument: Document
   ): HTMLLIElement {
     const topicElem = <HTMLLIElement>ownerDocument.createElement('li');
     topicElem.id = this.getTopicNodeIdentifier(topic);
+    topicElem.classList.add('topic');
     const topicDetails = ownerDocument.createElement('details');
     const topicSummary = ownerDocument.createElement('summary');
-    topicSummary.innerText = topic.getDisplayName();
+    const topicSummarySpan = ownerDocument.createElement('span');
+    topicSummarySpan.innerText = topic.getDisplayName();
+    topicSummary.appendChild(topicSummarySpan);
     topicDetails.appendChild(topicSummary);
 
     const chapterListElem = <HTMLUListElement>ownerDocument.createElement('ul');
@@ -119,9 +114,30 @@ export class ExplorerView
             cancelable: false,
             composed: false,
           })
-        )
+        ),
+      null
     );
     elem.classList.add('chapter');
     return elem;
+  }
+
+  private getTopicNodeIdentifier(topic: model.Topic): string {
+    return 'topic-' + topic.getId();
+  }
+
+  private getChapterNodeIdentifier(chapter: model.Chapter): string {
+    return 'chapter-' + chapter.getTopic().getId() + '-' + chapter.getId();
+  }
+
+  private getChapterNode(chapter: model.Chapter): HTMLLIElement | null {
+    return this.htmlRootElem.ownerDocument.getElementById(
+      this.getChapterNodeIdentifier(chapter)
+    ) as HTMLLIElement;
+  }
+
+  private getTopicNode(topic: model.Topic): HTMLLIElement | null {
+    return this.htmlRootElem.ownerDocument.getElementById(
+      this.getTopicNodeIdentifier(topic)
+    ) as HTMLLIElement;
   }
 }

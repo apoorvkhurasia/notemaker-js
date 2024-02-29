@@ -81,7 +81,8 @@ nav.block-element ul {
   li.chapter:hover,
   li.chapter:active,
   li.chapter:focus,
-  .selected {
+  .selected,
+  li.topic > details > summary:hover {
     background-color: #ddd;
     font-weight: normal;
     text-decoration: none;
@@ -172,4 +173,5 @@ a:visited {
 a:hover {
   font-weight: bold;
   text-decoration: none;
+  cursor: hand;
 }
