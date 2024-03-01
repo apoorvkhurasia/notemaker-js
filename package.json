@@ -21,6 +21,10 @@
     "fix": "gts fix",
     "prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
-    "posttest": "npm.cmd run lint"
+    "posttest": "npm.cmd run lint",
+    "start": "http-server -c-1 -p 8081"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
   }
 }

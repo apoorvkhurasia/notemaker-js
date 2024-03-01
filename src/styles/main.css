@@ -78,6 +78,13 @@ nav.block-element ul {
     width: 100%;
     white-space: nowrap;
   }
+  input.mini-editor {
+    box-shadow: none;
+    background-color: #ddd;
+    border: none;
+    width: 100%;
+    font-family: 'Open Sans', sans-serif;
+  }
   li.chapter:hover,
   li.chapter:active,
   li.chapter:focus,

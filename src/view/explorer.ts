@@ -1,5 +1,5 @@
 import * as model from '../lib/model';
-import * as cmp from './components';
+import {EditableAndClickableListItem} from './components';
 
 export class ExplorerView
   implements model.ChapterObserver, model.TopicObserver
@@ -62,9 +62,7 @@ export class ExplorerView
     const chapterListElement = ownerDocument.getElementById(
       this.getTopicNodeIdentifier(chapter.getTopic()) + '-chplist'
     );
-    chapterListElement?.appendChild(
-      this.createChapterElement(chapter, ownerDocument)
-    );
+    chapterListElement?.appendChild(this.createChapterElement(chapter));
   }
 
   public onChapterMove(chapter: model.Chapter, oldTopic: model.Topic): void {
@@ -75,7 +73,7 @@ export class ExplorerView
     topic: model.Topic,
     ownerDocument: Document
   ): HTMLLIElement {
-    const topicElem = <HTMLLIElement>ownerDocument.createElement('li');
+    const topicElem = ownerDocument.createElement('li');
     topicElem.id = this.getTopicNodeIdentifier(topic);
     topicElem.classList.add('topic');
     const topicDetails = ownerDocument.createElement('details');
@@ -85,12 +83,12 @@ export class ExplorerView
     topicSummary.appendChild(topicSummarySpan);
     topicDetails.appendChild(topicSummary);
 
-    const chapterListElem = <HTMLUListElement>ownerDocument.createElement('ul');
+    const chapterListElem = ownerDocument.createElement('ul');
     chapterListElem.id = this.getTopicNodeIdentifier(topic) + '-chplist';
 
     const chapterElems = topic
       .getChapters()
-      .map(chapter => this.createChapterElement(chapter, ownerDocument));
+      .map(chapter => this.createChapterElement(chapter));
     chapterElems.forEach(el => chapterListElem.appendChild(el));
 
     topicDetails.appendChild(chapterListElem);
@@ -98,24 +96,20 @@ export class ExplorerView
     return topicElem;
   }
 
-  private createChapterElement(
-    chapter: model.Chapter,
-    ownerDocument: Document
-  ): HTMLLIElement {
-    const elem = <HTMLLIElement>cmp.createListItem(
-      ownerDocument,
-      chapter.getDisplayName(),
-      this.getChapterNodeIdentifier(chapter),
-      elem =>
-        elem.dispatchEvent(
-          new CustomEvent<model.Chapter>('chapterChanged', {
-            detail: chapter,
-            bubbles: true,
-            cancelable: false,
-            composed: false,
-          })
-        ),
-      null
+  private createChapterElement(chapter: model.Chapter): HTMLLIElement {
+    const elem = new EditableAndClickableListItem();
+    elem.text = chapter.getDisplayName();
+    elem.id = this.getChapterNodeIdentifier(chapter);
+    elem.setAttribute('is', 'editable-li');
+    elem.addEventListener('click', e =>
+      elem.dispatchEvent(
+        new CustomEvent<model.Chapter>('chapterChanged', {
+          detail: chapter,
+          bubbles: true,
+          cancelable: false,
+          composed: false,
+        })
+      )
     );
     elem.classList.add('chapter');
     return elem;
