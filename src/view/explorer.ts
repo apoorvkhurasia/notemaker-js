@@ -1,5 +1,5 @@
 import * as model from '../lib/model';
-import {EditableSpan} from './components';
+import {EditableAnchorLIElement} from './components';
 
 export class ExplorerView
   implements model.ChapterObserver, model.TopicObserver
@@ -62,9 +62,7 @@ export class ExplorerView
     const chapterListElement = ownerDocument.getElementById(
       this.getTopicNodeIdentifier(chapter.getTopic()) + '-chplist'
     );
-    chapterListElement?.appendChild(
-      this.createChapterElement(chapter, ownerDocument)
-    );
+    chapterListElement?.appendChild(this.createChapterElement(chapter));
   }
 
   public onChapterMove(chapter: model.Chapter, oldTopic: model.Topic): void {
@@ -90,7 +88,7 @@ export class ExplorerView
 
     const chapterElems = topic
       .getChapters()
-      .map(chapter => this.createChapterElement(chapter, ownerDocument));
+      .map(chapter => this.createChapterElement(chapter));
     chapterElems.forEach(el => chapterListElem.appendChild(el));
 
     topicDetails.appendChild(chapterListElem);
@@ -98,15 +96,12 @@ export class ExplorerView
     return topicElem;
   }
 
-  private createChapterElement(
-    chapter: model.Chapter,
-    ownerDocument: Document
-  ): HTMLLIElement {
-    const elem = ownerDocument.createElement('li');
+  private createChapterElement(chapter: model.Chapter): HTMLLIElement {
+    const elem = new EditableAnchorLIElement();
     elem.id = this.getChapterNodeIdentifier(chapter);
-
-    const anchor = ownerDocument.createElement('a');
-    anchor.addEventListener('click', () =>
+    elem.text = chapter.getDisplayName();
+    elem.classList.add('chapter');
+    elem.addEventListener('anchorclick', () =>
       elem.dispatchEvent(
         new CustomEvent<model.Chapter>('chapterChanged', {
           detail: chapter,
@@ -116,11 +111,6 @@ export class ExplorerView
         })
       )
     );
-    const span = new EditableSpan();
-    span.text = chapter.getDisplayName();
-    anchor.appendChild(span);
-    elem.appendChild(anchor);
-    elem.classList.add('chapter');
     return elem;
   }
 

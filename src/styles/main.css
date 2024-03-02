@@ -71,7 +71,7 @@ nav.block-element ul {
     border-left: 2px solid #ddd;
     padding-left: 10px;
   }
-  li > a > span {
+  li > a {
     display: block;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -84,6 +84,12 @@ nav.block-element ul {
     border: none;
     width: 100%;
     font-family: 'Open Sans', sans-serif;
+    display: block;
+    outline: none;
+  }
+  input.mini-editor:focus {
+    outline: none;
+    background-color: antiquewhite;
   }
   li.chapter:hover,
   li.chapter:active,
