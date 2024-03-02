@@ -1,5 +1,5 @@
 import * as model from '../lib/model';
-import {EditableAndClickableListItem} from './components';
+import {EditableSpan} from './components';
 
 export class ExplorerView
   implements model.ChapterObserver, model.TopicObserver
@@ -62,7 +62,9 @@ export class ExplorerView
     const chapterListElement = ownerDocument.getElementById(
       this.getTopicNodeIdentifier(chapter.getTopic()) + '-chplist'
     );
-    chapterListElement?.appendChild(this.createChapterElement(chapter));
+    chapterListElement?.appendChild(
+      this.createChapterElement(chapter, ownerDocument)
+    );
   }
 
   public onChapterMove(chapter: model.Chapter, oldTopic: model.Topic): void {
@@ -88,7 +90,7 @@ export class ExplorerView
 
     const chapterElems = topic
       .getChapters()
-      .map(chapter => this.createChapterElement(chapter));
+      .map(chapter => this.createChapterElement(chapter, ownerDocument));
     chapterElems.forEach(el => chapterListElem.appendChild(el));
 
     topicDetails.appendChild(chapterListElem);
@@ -96,12 +98,15 @@ export class ExplorerView
     return topicElem;
   }
 
-  private createChapterElement(chapter: model.Chapter): HTMLLIElement {
-    const elem = new EditableAndClickableListItem();
-    elem.text = chapter.getDisplayName();
+  private createChapterElement(
+    chapter: model.Chapter,
+    ownerDocument: Document
+  ): HTMLLIElement {
+    const elem = ownerDocument.createElement('li');
     elem.id = this.getChapterNodeIdentifier(chapter);
-    elem.setAttribute('is', 'editable-li');
-    elem.addEventListener('click', e =>
+
+    const anchor = ownerDocument.createElement('a');
+    anchor.addEventListener('click', () =>
       elem.dispatchEvent(
         new CustomEvent<model.Chapter>('chapterChanged', {
           detail: chapter,
@@ -111,6 +116,10 @@ export class ExplorerView
         })
       )
     );
+    const span = new EditableSpan();
+    span.text = chapter.getDisplayName();
+    anchor.appendChild(span);
+    elem.appendChild(anchor);
     elem.classList.add('chapter');
     return elem;
   }

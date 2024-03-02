@@ -1,88 +1,78 @@
-export class EditableAndClickableListItem extends HTMLLIElement {
-  private linkElement: HTMLAnchorElement | null = null;
-  private displayElement: HTMLSpanElement | null = null;
+export class EditableSpan extends HTMLSpanElement {
+  public static readonly TAG_NAME = 'editable-span';
+
+  private textNode: Text;
+  private editor: HTMLInputElement;
+  private _text = '';
+
   public constructor() {
     super();
+    this.editor = document.createElement('input');
+    this.editor.classList.add('mini-editor');
+    this.textNode = document.createTextNode('');
+    this.setAttribute('is', EditableSpan.TAG_NAME);
+    this.style.display = 'block';
   }
 
   connectedCallback(): void {
-    const linkElem = document.createElement('a');
-    const displayElement = this.createDisplayTextNode();
-    linkElem.appendChild(displayElement);
-    this.appendChild(linkElem);
     this.addEventListener('dblclick', this.showEditor);
-    this.displayElement = displayElement;
-    this.linkElement = linkElem;
+    this.appendChild(this.textNode);
   }
 
-  disconnectedCallback() {
-    console.log('removed: ' + this.text);
+  disconnectedCallback(): void {
+    this.removeEventListener('dblclick', this.showEditor);
+    while (this.firstChild) {
+      this.removeChild(this.firstChild);
+    }
   }
 
   get text(): string {
-    const val = this.getAttribute('text');
-    if (val !== null) {
-      return val;
-    } else {
-      return '';
-    }
+    return this._text;
   }
 
   set text(displayText: string) {
     if (displayText === null || displayText.length === 0) {
-      this.removeAttribute('text');
+      this._text = '';
+      this.textNode.nodeValue = '';
     } else {
-      this.setAttribute('text', displayText);
+      this._text = displayText;
+      this.textNode.nodeValue = displayText;
     }
-    if (this.displayElement !== null) {
-      this.displayElement.textContent = displayText ?? '';
-    }
-  }
-
-  private createDisplayTextNode(): HTMLSpanElement {
-    const spanElem = document.createElement('span');
-    spanElem.style.display = 'block';
-    spanElem.textContent = this.text;
-    return spanElem;
   }
 
   private showEditor(event: Event) {
-    if (this.linkElement === null || this.displayElement === null) {
-      return;
-    }
     event.stopPropagation(); //We've got this one, thank you very much.
+    this.editor.value = this.text;
+    this.editor.addEventListener('keyup', this.processKeyboardInput);
+    this.removeEventListener('dblclick', this.showEditor);
+    this.removeChild(this.textNode);
+    this.appendChild(this.editor);
+    this.editor.focus();
+    this.editor.setSelectionRange(0, this.editor.value.length);
+  }
 
-    //Hide the text, put the textbox instead
-    this.linkElement.removeChild(this.displayElement);
+  private hideEditor(): void {
+    this.removeChild(this.editor);
+    this.appendChild(this.textNode);
+    this.editor.removeEventListener('keyup', this.processKeyboardInput);
+    this.addEventListener('dblclick', this.showEditor);
+  }
 
-    const editor = document.createElement('input');
-    editor.value = this.text;
-    editor.classList.add('mini-editor');
-    editor.addEventListener('keyup', e => {
-      if (this.linkElement === null || this.displayElement === null) {
-        return;
-      }
-      if (e.key === 'Escape') {
-        this.linkElement.removeChild(editor);
-        this.linkElement.appendChild(this.displayElement);
-      } else if (e.key === 'Enter') {
-        this.text = editor.value.trim();
-        this.linkElement.removeChild(editor);
-        this.linkElement.appendChild(this.displayElement);
-        this.dispatchEvent(
-          new CustomEvent<string>('textchanged', {
-            detail: this.text,
-            bubbles: true,
-            cancelable: false,
-            composed: false,
-          })
-        );
-      }
-    });
-    this.linkElement.appendChild(editor);
+  private processKeyboardInput(this: HTMLInputElement, e: KeyboardEvent): void {
+    const parent = <EditableSpan>this.parentElement;
+    if (!parent) {
+      return;
+    } else if (e.key === 'Escape') {
+      e.stopPropagation();
+      parent.hideEditor();
+    } else if (e.key === 'Enter') {
+      e.stopPropagation();
+      parent.hideEditor();
+      parent.text = this.value.trim();
+    }
   }
 }
 
-customElements.define('editable-li', EditableAndClickableListItem, {
-  extends: 'li',
+customElements.define(EditableSpan.TAG_NAME, EditableSpan, {
+  extends: 'span',
 });
