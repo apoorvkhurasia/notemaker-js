@@ -1,9 +1,11 @@
 import * as model from '../model/model';
-import {EditableAnchorLIElement} from './components';
+import { EditableAnchorLIElement } from './components';
 
 export class ExplorerView
-  implements model.ChapterObserver, model.TopicObserver
-{
+  implements model.ChapterObserver, model.TopicObserver {
+  addEventListener(arg0: string, arg1: (e: any) => Promise<void>) {
+    throw new Error('Method not implemented.');
+  }
   private htmlRootElem: HTMLUListElement;
   private activeChapter: HTMLLIElement | null = null;
 

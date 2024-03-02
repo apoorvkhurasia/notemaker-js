@@ -1,4 +1,4 @@
-import * as fs from './lib/fs';
+import * as fs from './controller/fs';
 import * as model from './model/model';
 import * as exp from './view/explorer';
 import * as cnt from './view/content';
