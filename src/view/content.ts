@@ -1,5 +1,4 @@
 import {parse} from 'marked';
-import $ from 'jquery';
 
 export class ContentViewer {
   private rawMarkdownEditorElement: HTMLTextAreaElement;
@@ -29,18 +28,18 @@ export class ContentViewer {
   }
 
   public hideEditor(): void {
-    $(this.rawMarkdownEditorElement).hide();
+    this.rawMarkdownEditorElement.style.display = 'none';
   }
 
   public showEditor(): void {
-    $(this.rawMarkdownEditorElement).show();
+    this.rawMarkdownEditorElement.style.display = 'block';
   }
 
   public hideHtml() {
-    $(this.renderedHtmlElement).hide();
+    this.renderedHtmlElement.style.display = 'none';
   }
 
   public showHtml(): void {
-    $(this.renderedHtmlElement).show();
+    this.renderedHtmlElement.style.display = 'block';
   }
 }

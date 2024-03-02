@@ -105,6 +105,20 @@ nav.block-element ul {
   }
 }
 
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 10px;
+  border: transparent;
+}
+
 #topic-or-chapter-input-form {
   height: 25px;
   line-height: 25px;

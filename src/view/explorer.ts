@@ -1,4 +1,4 @@
-import * as model from '../lib/model';
+import * as model from '../model/model';
 import {EditableAnchorLIElement} from './components';
 
 export class ExplorerView

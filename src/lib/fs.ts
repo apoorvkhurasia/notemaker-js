@@ -1,4 +1,4 @@
-import * as model from './model';
+import * as model from '../model/model';
 
 async function getTopicDirectoryHandle(
   contentRootHandle: FileSystemDirectoryHandle,
