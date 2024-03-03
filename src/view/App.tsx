@@ -3,7 +3,7 @@ import {ContentViewer} from './ContentViewer';
 import {Topic} from '../model/model';
 import {ContentController} from '../controller/contentcontroller';
 import {FileSystemController} from '../controller/fs';
-import {Explorer} from './Explorer';
+import {ContentExplorer} from './ContentExplorer';
 
 export interface AppState {
   contentController: ContentController | null;
@@ -44,7 +44,7 @@ export class App extends React.Component<{}, AppState> {
           </ul>
         </nav>
         <div className="ide-style-grid">
-          <Explorer topics={this.state.topics} />
+          <ContentExplorer topics={this.state.topics} />
           <ContentViewer
             caretPos={this.state.caretPos}
             editorVisible={this.state.editorVisible}

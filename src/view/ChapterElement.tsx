@@ -12,17 +12,15 @@ export class ChapterElement extends React.Component<ChapterProps, {}> {
 
   public render() {
     return (
-      <li
-        onDoubleClick={this.showEditor.bind(this)}
-        key={this.props.chapter.getId()}
-        className="chapter"
-      >
+      <li onDoubleClick={this.showEditor.bind(this)} className="chapter">
         <a id="anchor" onClick={this.loadChapter.bind(this)}>
           {this.props.chapter.getDisplayName()}
         </a>
         <input
           id="editor"
           className="mini-editor"
+          onKeyUp={this.processKeyboardInput.bind(this)}
+          style={{display: 'none'}}
           onKeyUp={this.processKeyboardInput.bind(this)}
           style={{display: 'none'}}
         ></input>

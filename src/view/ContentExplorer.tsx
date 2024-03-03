@@ -6,19 +6,17 @@ export interface ExplorerProps {
   topics: Topic[];
 }
 
-export class Explorer extends React.Component<ExplorerProps> {
-  public readonly TAG_NAME = 'content-explorer';
-
+export class ContentExplorer extends React.Component<ExplorerProps> {
   public constructor(props: ExplorerProps) {
     super(props);
   }
 
   public render() {
     const topicLiElems = this.props.topics.map(topic => (
-      <TopicElement topic={topic}></TopicElement>
+      <TopicElement key={topic.getId()} topic={topic}></TopicElement>
     ));
     return (
-      <>
+      <div id="explorer" className="left-sidebar">
         <nav>
           <ul>
             <li>
@@ -39,8 +37,10 @@ export class Explorer extends React.Component<ExplorerProps> {
             </li>
           </ul>
         </nav>
-        <ul id="root">{topicLiElems}</ul>
-      </>
+        <ul id="explorer-items" className="tree">
+          {topicLiElems}
+        </ul>
+      </div>
     );
   }
 

@@ -63,6 +63,9 @@ nav.block-element ul {
   padding-right: 1em;
   padding-left: 1em;
   width: 150px;
+  nav.menubar {
+    font-size: 0.85em;
+  }
   ul {
     list-style: none;
     padding-inline-start: 3px;

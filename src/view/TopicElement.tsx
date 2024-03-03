@@ -14,9 +14,11 @@ export class TopicElement extends React.Component<TopicProps, {}> {
   public render() {
     const chapterLiElems = this.props.topic
       .getChapters()
-      .map(chp => <ChapterElement chapter={chp}></ChapterElement>);
+      .map(chp => (
+        <ChapterElement key={chp.getId()} chapter={chp}></ChapterElement>
+      ));
     return (
-      <li key={this.props.topic.getId()}>
+      <li className="topic">
         <details>
           <summary>{this.props.topic.getDisplayName()}</summary>
           <ul id="chpList">{chapterLiElems}</ul>
