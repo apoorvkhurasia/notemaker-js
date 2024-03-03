@@ -2,9 +2,17 @@ html,
 body {
   font-family: 'Open Sans', sans-serif;
   background-color: #ffffff;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
   width: 100%;
   height: 100%;
-  margin: auto;
+  margin: 0;
+  padding: 0;
 }
 
 code,
@@ -31,28 +39,27 @@ samp {
   -webkit-font-smoothing: antialiased;
 }
 
-nav {
+.topmenu {
   background: #302f2f;
   color: #ffffff;
   height: auto;
-  font-size: 1em;
-  position: sticky;
-  top: 0;
+  margin: 0;
+  padding: 0;
 }
 
-nav li {
+.topmenu li {
   display: inline-block;
   cursor: pointer;
   margin: 0.15rem;
 }
 
-nav ul {
+.topmenu ul {
   text-align: left;
   margin: 1px;
   padding-inline-start: 2px;
 }
 
-nav.block-element ul {
+.topmenu.block-element ul {
   display: block;
 }
 
@@ -60,6 +67,7 @@ nav.block-element ul {
   font-size: 0.85em;
   border: none;
   border-right: solid black;
+  margin: 0;
   padding: 0;
   width: 150px;
   .material-symbols-outlined {
@@ -124,45 +132,6 @@ nav.block-element ul {
   border: transparent;
 }
 
-#topic-or-chapter-input-form {
-  height: 25px;
-  line-height: 25px;
-}
-
-#topic-or-chapter-input-form * {
-  vertical-align: middle;
-}
-
-#topic-or-chapter-input-form > input {
-  box-sizing: border-box;
-  width: 300px;
-  height: 100%;
-}
-
-#topic-or-chapter-input-form > button {
-  display: inline-block;
-  box-sizing: border-box;
-  padding: 0 0.5em;
-}
-
-#topic-or-chapter-input {
-  font-family: 'Open Sans', sans-serif;
-  font-size: 1em;
-}
-
-#topic-or-chapter-input-form {
-  text-align: center;
-  vertical-align: middle;
-  margin: 1em;
-}
-
-#topic-or-chapter-hint {
-  font-family: 'Fira Code', monospace;
-  font-optical-sizing: auto;
-  font-weight: 300;
-  font-size: 1em;
-}
-
 #markdownInput {
   box-shadow: none;
   resize: none;
@@ -176,14 +145,13 @@ nav.block-element ul {
   outline: none;
 }
 
-#footer {
-  text-align: left;
-  vertical-align: bottom;
+.footer {
   font-size: 0.8em;
-  bottom: 0;
-  position: sticky;
   background: #302f2f;
   color: #ffffff;
+  height: auto;
+  margin: 0;
+  padding: 0;
 }
 
 h1,

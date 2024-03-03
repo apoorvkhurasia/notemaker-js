@@ -50,12 +50,12 @@ export class ContentExplorer extends React.Component<
     ));
     return (
       <div id="explorer" ref={this.explorerRef} className="left-sidebar">
-        <nav className="menubar">
+        <nav className="topmenu">
           <ul>
             <li>
               <a
                 className="material-symbols-outlined"
-                onClick={this.createNewTopic}
+                onClick={this.createNewTopic.bind(this)}
               >
                 create_new_folder
               </a>
@@ -63,7 +63,7 @@ export class ContentExplorer extends React.Component<
             <li>
               <a
                 className="material-symbols-outlined"
-                onClick={this.createNewChapter}
+                onClick={this.createNewChapter.bind(this)}
               >
                 new_window
               </a>
