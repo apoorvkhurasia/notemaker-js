@@ -1,59 +1,36 @@
-import { ContentViewer as ContentView } from '../view/content';
-import { ExplorerView } from '../view/explorer';
-import { ContentController } from './contentcontroller';
-import { Chapter, Topic } from '../model/model';
+import {ContentViewer as ContentView} from '../view/content';
+import {Explorer} from '../view/explorer';
+import {ContentController} from './contentcontroller';
+import {Chapter, Topic} from '../model/model';
 
 export class AppController {
-  private explorerView: ExplorerView;
+  private explorerView: Explorer;
   private contentView: ContentView;
-  private navigationView: NavigationView;
   private contentController: ContentController;
 
   private currentTopic: Topic | null = null;
   private currentChapter: Chapter | null = null;
 
   public constructor(
-    explorerView: ExplorerView,
+    explorerView: Explorer,
     contentView: ContentView,
-    navigationView: NavigationView,
     contentController: ContentController
   ) {
     this.explorerView = explorerView;
     this.contentView = contentView;
-    this.navigationView = navigationView;
     this.contentController = contentController;
   }
 
   public load(): void {
-    this.navigationView.addEventListener(
-      'newtopicrequested',
-      this.createNewTopic
-    );
-    this.navigationView.addEventListener(
-      'newchapterrequested',
-      this.createNewChapter
-    );
-    this.navigationView.addEventListener(
-      'deletechapterrequested',
-      this.deleteCurrentChapter
-    );
-    this.navigationView.addEventListener(
-      'saverequested',
-      this.saveCurrentChapter
-    );
-    this.navigationView.addEventListener(
-      'reloadrequested',
-      this.discardAndReloadCurrentChapter
-    );
-    this.explorerView.addEventListener('chapterselected', e =>
-      this.displayChapter((<CustomEvent<Chapter>>e).detail)
-    );
-    this.explorerView.addEventListener('chapterrenamed', e =>
-      this.renameChapter((<CustomEvent<Chapter>>e).detail)
-    );
-    this.explorerView.addEventListener('topicrenamed', e =>
-      this.renameTopic((<CustomEvent<Topic>>e).detail)
-    );
+    // this.explorerView.addEventListener('chapterselected', e =>
+    //   this.displayChapter((<CustomEvent<Chapter>>e).detail)
+    // );
+    // this.explorerView.addEventListener('chapterrenamed', e =>
+    //   this.renameChapter((<CustomEvent<Chapter>>e).detail)
+    // );
+    // this.explorerView.addEventListener('topicrenamed', e =>
+    //   this.renameTopic((<CustomEvent<Topic>>e).detail)
+    // );
   }
 
   private async createNewTopic(): Promise<void> {
@@ -95,20 +72,23 @@ export class AppController {
   }
 
   private async renameChapter(chapter: Chapter): Promise<void> {
-    await this.contentController.renameChapter(chapter, chapter.getDisplayName());
-    this.explorerView.onChapterRenamed(chapter);
+    await this.contentController.renameChapter(
+      chapter,
+      chapter.getDisplayName()
+    );
   }
 
   private async renameTopic(topic: Topic): Promise<void> {
     await this.contentController.renameTopic(topic, topic.getDisplayName());
-    this.explorerView.onTopicRenamed(topic);
   }
 
   private async saveCurrentChapter(): Promise<void> {
     const chapter = this.currentChapter;
     if (chapter !== null) {
       await this.contentController.updateChapter(
-        chapter, this.contentView.getContent());
+        chapter,
+        this.contentView.getContent()
+      );
     }
   }
 

@@ -1,8 +1,7 @@
-import { Chapter, Topic } from '../model/model';
-import { ContentController } from './contentcontroller';
+import {Chapter, Topic} from '../model/model';
+import {ContentController} from './contentcontroller';
 
 export class FileSystemController implements ContentController {
-
   private contentRootHandle: FileSystemDirectoryHandle;
 
   public constructor(contentRootHandle: FileSystemDirectoryHandle) {
@@ -21,7 +20,9 @@ export class FileSystemController implements ContentController {
         ) {
           const topic = new Topic(metadata.id, metadata.displayName);
           if (withChapters) {
-            (await this.getChapters(topic)).forEach(chp => topic.addChapter(chp));
+            (await this.getChapters(topic)).forEach(chp =>
+              topic.addChapter(chp)
+            );
           }
           topics.push(topic);
         }
@@ -33,25 +34,19 @@ export class FileSystemController implements ContentController {
   public async getChapters(topic: Topic): Promise<Chapter[]> {
     const handle = await this.getTopicDirectoryHandle(topic);
     const chapters = new Array<Chapter>();
-    if (handle == null) {
+    if (handle === null) {
       return chapters;
     }
     for await (const [name, chapterHandle] of handle.entries()) {
       if (name.endsWith('.md') && chapterHandle.kind === 'file') {
-        chapters.push(new Chapter(
-          name,
-          name.substring(0, name.length - 3)
-        ));
+        chapters.push(new Chapter(name, name.substring(0, name.length - 3)));
       }
     }
     return chapters;
   }
 
   public async getChapterText(chapter: Chapter): Promise<string> {
-    const chapterHandle = await this.getChapterFileHandle(
-      chapter,
-      false
-    );
+    const chapterHandle = await this.getChapterFileHandle(chapter, false);
     if (chapterHandle === null) {
       return '';
     }
@@ -81,12 +76,18 @@ export class FileSystemController implements ContentController {
 
   public async newTopic(topic: Topic): Promise<void> {
     const topicId = topic.getId();
-    const topicHandle = await this.contentRootHandle.getDirectoryHandle(topicId, {
-      create: true,
-    });
-    const metadataFileHandle = await topicHandle.getFileHandle('manifest.json', {
-      create: true,
-    });
+    const topicHandle = await this.contentRootHandle.getDirectoryHandle(
+      topicId,
+      {
+        create: true,
+      }
+    );
+    const metadataFileHandle = await topicHandle.getFileHandle(
+      'manifest.json',
+      {
+        create: true,
+      }
+    );
     const metadataWritable = await metadataFileHandle.createWritable();
     try {
       await metadataWritable.write(JSON.stringify(topic));
@@ -103,11 +104,12 @@ export class FileSystemController implements ContentController {
     this.createOrUpdateChapter(chapter, text, false);
   }
 
-  private async createOrUpdateChapter(chapter: Chapter, text: string, create: boolean): Promise<void> {
-    const chapterHandle = await this.getChapterFileHandle(
-      chapter,
-      create
-    );
+  private async createOrUpdateChapter(
+    chapter: Chapter,
+    text: string,
+    create: boolean
+  ): Promise<void> {
+    const chapterHandle = await this.getChapterFileHandle(chapter, create);
     if (chapterHandle !== null && text.length > 0) {
       const chapterWritable = await chapterHandle.createWritable();
       try {
@@ -120,9 +122,12 @@ export class FileSystemController implements ContentController {
 
   private async getTopicMetadata(dirHandle: FileSystemDirectoryHandle) {
     try {
-      const metadataFileHandle = await dirHandle.getFileHandle('manifest.json', {
-        create: false,
-      });
+      const metadataFileHandle = await dirHandle.getFileHandle(
+        'manifest.json',
+        {
+          create: false,
+        }
+      );
       const metadataFile = await metadataFileHandle.getFile();
       const metadataText = await metadataFile.text();
       return JSON.parse(metadataText);
@@ -144,7 +149,7 @@ export class FileSystemController implements ContentController {
       if (topicHandle === null) {
         return null;
       }
-      return topicHandle.getFileHandle(chapter.getId(), { create: create });
+      return topicHandle.getFileHandle(chapter.getId(), {create: create});
     } catch (err) {
       return null;
     }
@@ -154,10 +159,11 @@ export class FileSystemController implements ContentController {
     topic: Topic
   ): Promise<FileSystemDirectoryHandle | null> {
     try {
-      return this.contentRootHandle.getDirectoryHandle(topic.getId(), { create: false });
+      return this.contentRootHandle.getDirectoryHandle(topic.getId(), {
+        create: false,
+      });
     } catch (err) {
       return null;
     }
   }
-
 }

@@ -44,7 +44,7 @@ const documentTree: DocumentTree = {
   ),
 };
 
-const explorer = new exp.ExplorerView(documentTree.explorerItems);
+const explorer = new exp.Explorer(documentTree.explorerItems);
 const content = new cnt.ContentViewer(
   documentTree.mdInput,
   documentTree.previewArea

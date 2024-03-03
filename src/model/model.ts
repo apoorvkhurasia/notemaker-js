@@ -77,10 +77,7 @@ export class Chapter {
   private topic: Topic | null = null; //backlink
   private observers: Array<ChapterObserver> = [];
 
-  public constructor(
-    id: string,
-    displayName: string
-  ) {
+  public constructor(id: string, displayName: string) {
     this.id = id;
     this.displayName = displayName;
   }
