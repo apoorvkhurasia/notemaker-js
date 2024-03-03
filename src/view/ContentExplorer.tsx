@@ -17,7 +17,7 @@ export class ContentExplorer extends React.Component<ExplorerProps> {
     ));
     return (
       <div id="explorer" className="left-sidebar">
-        <nav>
+        <nav className="menubar">
           <ul>
             <li>
               <a

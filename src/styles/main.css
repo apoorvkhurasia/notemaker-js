@@ -60,15 +60,16 @@ nav.block-element ul {
   font-size: 0.85em;
   border: none;
   border-right: solid black;
-  padding-right: 1em;
-  padding-left: 1em;
+  padding: 0;
   width: 150px;
-  nav.menubar {
-    font-size: 0.85em;
+  .material-symbols-outlined {
+    font-size: 18px;
   }
   ul {
     list-style: none;
     padding-inline-start: 3px;
+    padding: 0;
+    margin: 2px;
   }
   li.chapter {
     border-left: 2px solid #ddd;
