@@ -1,6 +1,5 @@
 import {parse} from 'marked';
 import React from 'react';
-import {Explorer} from './explorer';
 
 export interface ContentViewerProps {
   rawMarkdownText: string;
@@ -24,20 +23,19 @@ export class ContentViewer extends React.Component<
 
   public render() {
     return (
-      <div className="two-pane-grid">
+      <>
         <textarea
           id="markdownInput"
           className="editor-area"
           onInput={this.onMarkdownInput}
-        >
-          {this.props.rawMarkdownText}
-        </textarea>
+          value={this.props.rawMarkdownText}
+        ></textarea>
         <div
           id="preview"
           className="formatted-content"
           dangerouslySetInnerHTML={{__html: this.state.parsedText}}
         ></div>
-      </div>
+      </>
     );
   }
 
