@@ -1,14 +1,47 @@
-import {Topic} from '../model/model';
+import {Chapter, Topic} from '../model/model';
 import {TopicElement} from './TopicElement';
-import React from 'react';
+import React, {RefObject, createRef} from 'react';
 
 export interface ExplorerProps {
   topics: Topic[];
 }
 
-export class ContentExplorer extends React.Component<ExplorerProps> {
+export interface ExplorerState {
+  selectedChapterElement: HTMLLIElement | null;
+}
+
+export class ContentExplorer extends React.Component<
+  ExplorerProps,
+  ExplorerState
+> {
+  private explorerRef: RefObject<HTMLDivElement>;
+
   public constructor(props: ExplorerProps) {
     super(props);
+    this.explorerRef = createRef();
+    this.state = {selectedChapterElement: null};
+  }
+
+  componentDidMount(): void {
+    const explorer = this.explorerRef.current as HTMLDivElement;
+    if (explorer === null) {
+      return;
+    }
+    explorer.addEventListener(
+      'chapterselectedevent',
+      (e: CustomEvent<Chapter>) => {
+        const selectedElem = e.target as HTMLLIElement;
+        if (selectedElem) {
+          selectedElem.classList.add('selected');
+        }
+        const oldSelectedElem = this.state
+          .selectedChapterElement as HTMLLIElement;
+        if (oldSelectedElem) {
+          oldSelectedElem.classList.remove('selected');
+        }
+        this.setState({selectedChapterElement: selectedElem});
+      }
+    );
   }
 
   public render() {
@@ -16,7 +49,7 @@ export class ContentExplorer extends React.Component<ExplorerProps> {
       <TopicElement key={topic.getId()} topic={topic}></TopicElement>
     ));
     return (
-      <div id="explorer" className="left-sidebar">
+      <div id="explorer" ref={this.explorerRef} className="left-sidebar">
         <nav className="menubar">
           <ul>
             <li>

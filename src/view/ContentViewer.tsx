@@ -27,7 +27,7 @@ export class ContentViewer extends React.Component<
         <textarea
           id="markdownInput"
           className="editor-area"
-          onInput={this.onMarkdownInput}
+          onInput={this.onMarkdownInput.bind(this)}
           value={this.props.rawMarkdownText}
         ></textarea>
         <div

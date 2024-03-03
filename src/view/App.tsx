@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {RefObject, createRef} from 'react';
 import {ContentViewer} from './ContentViewer';
-import {Topic} from '../model/model';
+import {Chapter, Topic} from '../model/model';
 import {ContentController} from '../controller/contentcontroller';
 import {FileSystemController} from '../controller/fs';
 import {ContentExplorer} from './ContentExplorer';
@@ -15,6 +15,8 @@ export interface AppState {
 }
 
 export class App extends React.Component<{}, AppState> {
+  private ide: RefObject<HTMLDivElement> = createRef();
+
   public constructor(props: {}) {
     super(props);
     this.state = {
@@ -25,6 +27,26 @@ export class App extends React.Component<{}, AppState> {
       editorVisible: true,
       previewVisible: true,
     };
+  }
+
+  componentDidMount(): void {
+    const ideGrid = this.ide.current as HTMLDivElement;
+    if (ideGrid) {
+      ideGrid.addEventListener(
+        'chapterselectedevent',
+        this.loadChapter.bind(this)
+      );
+    }
+  }
+
+  componentWillUnmount(): void {
+    const ideGrid = this.ide.current as HTMLDivElement;
+    if (ideGrid) {
+      ideGrid.removeEventListener(
+        'chapterselectedevent',
+        this.loadChapter.bind(this)
+      );
+    }
   }
 
   public render() {
@@ -43,7 +65,7 @@ export class App extends React.Component<{}, AppState> {
             </li>
           </ul>
         </nav>
-        <div className="ide-style-grid">
+        <div className="ide-style-grid" ref={this.ide}>
           <ContentExplorer topics={this.state.topics} />
           <ContentViewer
             caretPos={this.state.caretPos}
@@ -57,12 +79,21 @@ export class App extends React.Component<{}, AppState> {
     );
   }
 
-  public async openStore(): Promise<void> {
+  private async openStore(): Promise<void> {
     const storeDirectoryHandle = await window.showDirectoryPicker();
     const contentController = new FileSystemController(storeDirectoryHandle);
     this.setState({contentController: contentController});
     contentController.getTopics(true).then(topics => {
       this.setState(() => ({topics: topics}));
     });
+  }
+
+  private loadChapter(e: CustomEvent<Chapter>): void {
+    const controller = this.state.contentController;
+    if (controller) {
+      controller.getChapterText(e.detail).then(text => {
+        this.setState({rawMarkdownText: text});
+      });
+    }
   }
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {RefObject, createRef} from 'react';
 import {Chapter} from '../model/model';
 
 export interface ChapterProps {
@@ -7,54 +7,83 @@ export interface ChapterProps {
 
 export interface ChapterState {
   editingName: boolean;
+  newChapterName: string;
+  chapter: Chapter;
 }
 
 export class ChapterElement extends React.Component<
   ChapterProps,
   ChapterState
 > {
+  private liRef: RefObject<HTMLLIElement>;
+  private editorRef: RefObject<HTMLInputElement>;
+
   public constructor(chapterProps: ChapterProps) {
     super(chapterProps);
-    this.state = {editingName: false};
+    this.liRef = createRef();
+    this.editorRef = createRef();
+    this.state = {
+      chapter: chapterProps.chapter,
+      editingName: false,
+      newChapterName: chapterProps.chapter.getDisplayName(),
+    };
   }
 
   public render() {
     return (
-      <li onDoubleClick={this.showEditor.bind(this)} className="chapter">
+      <li ref={this.liRef} className="chapter">
         <a
-          id="anchor"
           onClick={this.loadChapter.bind(this)}
+          onDoubleClick={this.showEditor.bind(this)}
           style={
             this.state.editingName ? {display: 'none'} : {display: 'block'}
           }
         >
-          {this.props.chapter.getDisplayName()}
+          {this.state.chapter.getDisplayName()}
         </a>
-        <input
-          id="editor"
-          className="mini-editor"
-          onKeyUp={this.processKeyboardInput.bind(this)}
-          style={
-            this.state.editingName ? {display: 'block'} : {display: 'none'}
-          }
-          autoFocus={true}
-          value={this.props.chapter.getDisplayName()}
-        ></input>
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            this.state.chapter.setDisplayName(this.state.newChapterName);
+            this.hideEditor();
+          }}
+          onAbort={e => {
+            e.preventDefault();
+            this.setState({
+              newChapterName: this.props.chapter.getDisplayName(), //Restore
+              editingName: false,
+            });
+          }}
+        >
+          <input
+            ref={this.editorRef}
+            className="mini-editor"
+            onKeyUp={this.processKeyboardInput.bind(this)}
+            style={
+              this.state.editingName ? {display: 'block'} : {display: 'none'}
+            }
+            autoFocus={true}
+            defaultValue={this.props.chapter.getDisplayName()}
+            onChange={e =>
+              this.setState({newChapterName: e.target.value.trim()})
+            }
+          ></input>
+          <input type="submit" style={{display: 'none'}} tabIndex={-1}></input>
+          <input type="reset" style={{display: 'none'}} tabIndex={-1}></input>
+        </form>
       </li>
     );
   }
 
-  private showEditor(event: React.MouseEvent) {
+  private showEditor(e: React.MouseEvent) {
+    this.loadChapter();
     this.setState({editingName: true});
-    // const editor = document.getElementById('editor') as HTMLInputElement;
-    // const anchor = document.getElementById('anchor') as HTMLAnchorElement;
-    // event.stopPropagation(); //We've got this one, thank you very much.
-    // editor.value = this.props.chapter.getDisplayName();
-    // anchor.style.display = 'none';
-    // editor.style.display = 'block';
-
-    // editor.focus();
-    // editor.setSelectionRange(0, editor.value.length);
+    const editor = this.editorRef.current as HTMLInputElement;
+    if (editor) {
+      editor.focus();
+      editor.setSelectionRange(0, editor.value.length);
+    }
+    e.stopPropagation();
   }
 
   private hideEditor() {
@@ -62,26 +91,22 @@ export class ChapterElement extends React.Component<
   }
 
   private processKeyboardInput(e: React.KeyboardEvent): void {
-    if (!parent) {
-      return;
-    } else if (e.key === 'Escape') {
-      e.stopPropagation();
+    if (e.key === 'Escape' || e.key === 'Enter') {
       this.hideEditor();
-    } else if (e.key === 'Enter') {
-      e.stopPropagation();
-      const newName = (e.target as HTMLTextAreaElement).value;
-      this.props.chapter.setDisplayName(newName.trim());
     }
   }
 
   private loadChapter(): void {
-    dispatchEvent(
-      new CustomEvent<Chapter>('chapterChanged', {
-        detail: this.props.chapter,
-        bubbles: true,
-        cancelable: false,
-        composed: false,
-      })
-    );
+    const liElem = this.liRef.current as HTMLLIElement;
+    if (liElem) {
+      liElem.dispatchEvent(
+        new CustomEvent<Chapter>('chapterselectedevent', {
+          detail: this.props.chapter,
+          bubbles: true,
+          cancelable: false,
+          composed: false,
+        })
+      );
+    }
   }
 }
