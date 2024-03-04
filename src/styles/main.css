@@ -2,9 +2,17 @@ html,
 body {
   font-family: 'Open Sans', sans-serif;
   background-color: #ffffff;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  height: 100vh;
   width: 100%;
-  height: 100%;
-  margin: auto;
+  margin: 0;
+  padding: 0;
 }
 
 code,
@@ -31,41 +39,45 @@ samp {
   -webkit-font-smoothing: antialiased;
 }
 
-nav {
+.topmenu {
   background: #302f2f;
   color: #ffffff;
   height: auto;
-  font-size: 1em;
-  position: sticky;
-  top: 0;
+  margin: 0;
+  padding: 0;
 }
 
-nav li {
+.topmenu li {
   display: inline-block;
   cursor: pointer;
   margin: 0.15rem;
 }
 
-nav ul {
+.topmenu ul {
   text-align: left;
   margin: 1px;
   padding-inline-start: 2px;
 }
 
-nav.block-element ul {
+.topmenu.block-element ul {
   display: block;
 }
 
 #explorer {
   font-size: 0.85em;
   border: none;
-  border-right: solid black;
-  padding-right: 1em;
-  padding-left: 1em;
+  border-right: 1px solid rgb(37, 37, 37);
+  margin: 0;
+  padding: 0;
   width: 150px;
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
   ul {
     list-style: none;
     padding-inline-start: 3px;
+    padding: 0;
+    margin: 2px;
   }
   li.chapter {
     border-left: 2px solid #ddd;
@@ -105,76 +117,38 @@ nav.block-element ul {
   }
 }
 
-::-webkit-scrollbar {
-  width: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 10px;
-  border: transparent;
-}
-
-#topic-or-chapter-input-form {
-  height: 25px;
-  line-height: 25px;
-}
-
-#topic-or-chapter-input-form * {
-  vertical-align: middle;
-}
-
-#topic-or-chapter-input-form > input {
-  box-sizing: border-box;
-  width: 300px;
-  height: 100%;
-}
-
-#topic-or-chapter-input-form > button {
-  display: inline-block;
-  box-sizing: border-box;
-  padding: 0 0.5em;
-}
-
-#topic-or-chapter-input {
-  font-family: 'Open Sans', sans-serif;
-  font-size: 1em;
-}
-
-#topic-or-chapter-input-form {
-  text-align: center;
-  vertical-align: middle;
-  margin: 1em;
-}
-
-#topic-or-chapter-hint {
-  font-family: 'Fira Code', monospace;
-  font-optical-sizing: auto;
-  font-weight: 300;
-  font-size: 1em;
+#preview {
+  margin: 0;
+  padding: 0;
+  overflow-y: scroll;
+  overflow-x: scroll;
+  overflow-wrap: break-word;
 }
 
 #markdownInput {
   box-shadow: none;
   resize: none;
-  border-right: 10px #302f2f;
   border: none;
+  border-right: 1px solid rgb(37, 37, 37);
   font-family: 'Fira Code', monospace;
   font-size: 1em;
+  margin: 0;
+  padding: 0;
 }
 
-#footer {
-  text-align: left;
-  vertical-align: bottom;
+#markdownInput:focus {
+  outline: none;
+}
+
+.footer {
   font-size: 0.8em;
-  bottom: 0;
-  position: sticky;
   background: #302f2f;
   color: #ffffff;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  right: 0;
+  box-sizing: border-box;
 }
 
 h1,
@@ -201,4 +175,20 @@ a:hover {
   font-weight: bold;
   text-decoration: none;
   cursor: hand;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+  cursor: hand;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 20px;
+  border: transparent;
 }

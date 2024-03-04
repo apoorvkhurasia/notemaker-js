@@ -3,6 +3,7 @@
     "@types/node": "20.8.2",
     "@types/wicg-file-system-access": "^2023.10.4",
     "css-loader": "^6.10.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "gts": "^5.2.0",
     "html-webpack-plugin": "^5.6.0",
     "marked": "^12.0.0",
@@ -10,7 +11,9 @@
     "terser-webpack-plugin": "^5.3.10",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",
-    "webpack-bundle-analyzer": "^4.10.1"
+    "webpack": "^5.90.3",
+    "webpack-bundle-analyzer": "^4.10.1",
+    "webpack-cli": "^5.1.4"
   },
   "scripts": {
     "lint": "gts lint",
@@ -23,6 +26,10 @@
     "start": "http-server -c-1 -p 8081"
   },
   "dependencies": {
-    "http-server": "^14.1.1"
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
+    "http-server": "^14.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }
