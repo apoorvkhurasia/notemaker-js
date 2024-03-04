@@ -18,7 +18,7 @@ export class ContentViewer extends React.Component<
   ContentViewerProps,
   ContentViewerState
 > {
-  public constructor(props: ContentViewerProps, state: ContentViewerState) {
+  public constructor(props: ContentViewerProps) {
     super(props);
     this.state = {
       rawMarkdownText: props.originalRawMarkdownText,
@@ -31,9 +31,8 @@ export class ContentViewer extends React.Component<
     if (typeof htmlOrPromise === 'string') {
       this.setState({rawMarkdownText: rawText, parsedHTML: htmlOrPromise});
     } else {
-      htmlOrPromise.then(h =>
-        this.setState({rawMarkdownText: rawText, parsedHTML: h})
-      );
+      this.setState({rawMarkdownText: rawText}); //This must always be done synchronously
+      htmlOrPromise.then(h => this.setState({parsedHTML: h}));
     }
   }
 
@@ -43,8 +42,10 @@ export class ContentViewer extends React.Component<
 
   componentDidUpdate(
     prevProps: Readonly<ContentViewerProps>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     prevState: Readonly<ContentViewerState>,
-    snapshot?: any
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    snapshot?: unknown
   ): void {
     if (prevProps.contentId === this.props.contentId) {
       return;
@@ -57,9 +58,16 @@ export class ContentViewer extends React.Component<
       <>
         <textarea
           id="markdownInput"
+          style={
+            this.props.contentId === '-1'
+              ? {display: 'none'}
+              : {display: 'block'}
+          }
           className="editor-area"
           onChange={this.onMarkdownChange.bind(this)}
-          defaultValue={this.state.rawMarkdownText}
+          value={this.state.rawMarkdownText}
+          autoFocus={true}
+          placeholder={'Type in markdown syntax here. LaTeX is supported.'}
         ></textarea>
         <div
           id="preview"
@@ -70,11 +78,7 @@ export class ContentViewer extends React.Component<
     );
   }
 
-  private async onMarkdownChange(
-    inputEvent: React.ChangeEvent<HTMLTextAreaElement>
-  ) {
-    const rawText = inputEvent.target.value;
-    const parsedHTML = await parse(rawText);
-    this.setState({parsedHTML: parsedHTML});
+  private async onMarkdownChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    this.update(e.target.value);
   }
 }
