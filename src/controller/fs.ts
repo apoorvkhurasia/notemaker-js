@@ -1,6 +1,23 @@
 import {Chapter, Topic} from '../model/model';
 import {ContentController} from './contentcontroller';
 
+export type ChapterShell = {
+  id: string;
+  displayName: string;
+};
+
+export type TopicShell = {
+  id: string;
+  displayName: string;
+  chapters: ChapterShell[];
+};
+
+export type StoreMetadata = {
+  id: string;
+  displayName: string;
+  topics: TopicShell[];
+};
+
 export class FileSystemController implements ContentController {
   private contentRootHandle: FileSystemDirectoryHandle;
 
@@ -8,99 +25,134 @@ export class FileSystemController implements ContentController {
     this.contentRootHandle = contentRootHandle;
   }
 
-  public async getTopics(withChapters: boolean): Promise<Topic[]> {
+  public async getTopics(): Promise<Topic[]> {
     const topics = new Array<Topic>();
-    for await (const [, handle] of this.contentRootHandle.entries()) {
-      if (handle.kind === 'directory') {
-        const metadata = await this.getTopicMetadata(handle);
-        if (
-          metadata !== null &&
-          metadata.id !== null &&
-          metadata.displayName !== null
-        ) {
-          const topic = new Topic(metadata.id, metadata.displayName);
-          if (withChapters) {
-            (await this.getChapters(topic)).forEach(chp =>
-              topic.addChapter(chp)
-            );
-          }
-          topics.push(topic);
-        }
+    const metadata = await this.getMetadata();
+    if (metadata === null) {
+      //TODO: Handle orphan nodes later
+      return topics;
+    }
+    for (const topicShell of metadata.topics) {
+      const topic = new Topic(topicShell.id, topicShell.displayName);
+      for (const chapterShell of topicShell.chapters) {
+        topic.addChapter(
+          new Chapter(chapterShell.id, chapterShell.displayName)
+        );
       }
+      topics.push(topic);
     }
     return topics;
-  }
-
-  public async getChapters(topic: Topic): Promise<Chapter[]> {
-    const handle = await this.getTopicDirectoryHandle(topic);
-    const chapters = new Array<Chapter>();
-    if (handle === null) {
-      return chapters;
-    }
-    for await (const [name, chapterHandle] of handle.entries()) {
-      if (name.endsWith('.md') && chapterHandle.kind === 'file') {
-        chapters.push(new Chapter(name, name.substring(0, name.length - 3)));
-      }
-    }
-    return chapters;
   }
 
   public async getChapterText(chapter: Chapter): Promise<string> {
     const chapterHandle = await this.getChapterFileHandle(chapter, false);
     if (chapterHandle === null) {
-      return '';
+      return ''; //TODO: Handle missing chapter content with a warning icon later
     }
-    const chapterFile = await chapterHandle.getFile();
-    return await chapterFile.text();
+    return await (await chapterHandle.getFile()).text();
   }
 
   public async deleteTopic(topic: Topic): Promise<void> {
-    throw new Error('Method not implemented.');
+    const metadata = await this.getMetadata();
+    if (metadata === null) {
+      return;
+    }
+    metadata.topics = metadata.topics.filter(t => t.id !== topic.getId());
+    this.writeMetadata(metadata);
   }
 
   public async deleteChapter(chapter: Chapter): Promise<void> {
-    throw new Error('Method not implemented.');
+    await this.contentRootHandle.removeEntry(chapter.getId());
+    const topic = chapter.getTopic();
+    if (topic === null) {
+      return;
+    }
+    const metadata = await this.getMetadata();
+    if (metadata !== null) {
+      for (const topicShell of metadata.topics) {
+        if (topicShell.id === topic.getId()) {
+          topicShell.chapters = topicShell.chapters.filter(
+            c => c.id === chapter.getId()
+          );
+          break;
+        }
+      }
+      await this.writeMetadata(metadata);
+    }
   }
 
   public async renameTopic(topic: Topic, newName: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    const metadata = await this.getMetadata();
+    if (metadata !== null) {
+      for (const topicShell of metadata.topics) {
+        topicShell.displayName = newName;
+        break;
+      }
+      await this.writeMetadata(metadata);
+    }
   }
 
   public async renameChapter(chapter: Chapter, newName: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    const topic = chapter.getTopic();
+    if (topic === null) {
+      return; //TODO: Handle orphan nodes later
+    }
+    const metadata = await this.getMetadata();
+    if (metadata === null) {
+      return;
+    }
+    for (const topicShell of metadata.topics) {
+      if (topicShell.id === topic.getId()) {
+        for (const chapter of topicShell.chapters) {
+          chapter.displayName = newName;
+          break;
+        }
+      }
+      break;
+    }
+    await this.writeMetadata(metadata);
   }
 
   public async moveChapter(chapter: Chapter, newTopic: Topic): Promise<void> {
-    throw new Error('Method not implemented.');
+    const metadata = await this.getMetadata();
+    if (metadata === null) {
+      return;
+    }
+
+    const oldTopic = chapter.getTopic();
+    for (const topicShell of metadata.topics) {
+      if (oldTopic !== null && topicShell.id === oldTopic.getId()) {
+        topicShell.chapters = topicShell.chapters.filter(
+          c => c.id === chapter.getId()
+        );
+      } else if (topicShell.id === newTopic.getId()) {
+        topicShell.chapters.push({
+          id: chapter.getId(),
+          displayName: chapter.getDisplayName(),
+        });
+      }
+    }
+    await this.writeMetadata(metadata);
   }
 
   public async newTopic(topic: Topic): Promise<void> {
-    const topicId = topic.getId();
-    const topicHandle = await this.contentRootHandle.getDirectoryHandle(
-      topicId,
-      {
-        create: true,
-      }
-    );
-    const metadataFileHandle = await topicHandle.getFileHandle(
-      'manifest.json',
-      {
-        create: true,
-      }
-    );
-    const metadataWritable = await metadataFileHandle.createWritable();
-    try {
-      await metadataWritable.write(JSON.stringify(topic));
-    } finally {
-      await metadataWritable.close();
+    const metadata = await this.getMetadata();
+    if (metadata === null) {
+      return;
     }
+    metadata.topics.push({
+      id: topic.getId(),
+      displayName: topic.getDisplayName(),
+      chapters: [],
+    });
+    await this.writeMetadata(metadata);
   }
 
   public async newChapter(chapter: Chapter, text: string): Promise<void> {
     this.createOrUpdateChapter(chapter, text, true);
   }
 
-  public async updateChapter(chapter: Chapter, text: string): Promise<void> {
+  public async saveChapter(chapter: Chapter, text: string): Promise<void> {
     this.createOrUpdateChapter(chapter, text, false);
   }
 
@@ -120,9 +172,9 @@ export class FileSystemController implements ContentController {
     }
   }
 
-  private async getTopicMetadata(dirHandle: FileSystemDirectoryHandle) {
+  private async getMetadata(): Promise<StoreMetadata | null> {
     try {
-      const metadataFileHandle = await dirHandle.getFileHandle(
+      const metadataFileHandle = await this.contentRootHandle.getFileHandle(
         'manifest.json',
         {
           create: false,
@@ -130,9 +182,24 @@ export class FileSystemController implements ContentController {
       );
       const metadataFile = await metadataFileHandle.getFile();
       const metadataText = await metadataFile.text();
-      return JSON.parse(metadataText);
+      return <StoreMetadata>JSON.parse(metadataText);
     } catch (err) {
       return null;
+    }
+  }
+
+  private async writeMetadata(metadata: StoreMetadata): Promise<void> {
+    const metadataFileHandle = await this.contentRootHandle.getFileHandle(
+      'manifest.json',
+      {
+        create: true,
+      }
+    );
+    const metadataWritable = await metadataFileHandle.createWritable();
+    try {
+      await metadataWritable.write(JSON.stringify(metadata));
+    } finally {
+      await metadataWritable.close();
     }
   }
 
@@ -140,27 +207,9 @@ export class FileSystemController implements ContentController {
     chapter: Chapter,
     create: boolean
   ): Promise<FileSystemFileHandle | null> {
-    const topic = chapter.getTopic();
-    if (topic === null) {
-      return null;
-    }
     try {
-      const topicHandle = await this.getTopicDirectoryHandle(topic);
-      if (topicHandle === null) {
-        return null;
-      }
-      return topicHandle.getFileHandle(chapter.getId(), {create: create});
-    } catch (err) {
-      return null;
-    }
-  }
-
-  private async getTopicDirectoryHandle(
-    topic: Topic
-  ): Promise<FileSystemDirectoryHandle | null> {
-    try {
-      return this.contentRootHandle.getDirectoryHandle(topic.getId(), {
-        create: false,
+      return this.contentRootHandle.getFileHandle(chapter.getId() + '.md', {
+        create: create,
       });
     } catch (err) {
       return null;

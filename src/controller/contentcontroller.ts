@@ -2,7 +2,6 @@ import {Chapter, Topic} from '../model/model';
 
 export interface ContentController {
   getTopics(withChapters: boolean): Promise<Topic[]>;
-  getChapters(topic: Topic): Promise<Chapter[]>;
   getChapterText(chapter: Chapter): Promise<string>;
   deleteTopic(topic: Topic): Promise<void>;
   deleteChapter(chapter: Chapter): Promise<void>;
@@ -12,5 +11,5 @@ export interface ContentController {
   newTopic(topic: Topic): Promise<void>;
   newChapter(chapter: Chapter, text: string): Promise<void>;
   newChapter(chapter: Chapter, text: string): Promise<void>;
-  updateChapter(chapter: Chapter, text: string): Promise<void>;
+  saveChapter(chapter: Chapter, text: string): Promise<void>;
 }

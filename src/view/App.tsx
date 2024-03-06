@@ -1,6 +1,6 @@
 import React from 'react';
 import {ContentViewer} from './ContentViewer';
-import {Chapter, Topic} from '../model/model';
+import {Chapter, ChapterTrigger, Topic, TopicTrigger} from '../model/model';
 import {ContentController} from '../controller/contentcontroller';
 import {FileSystemController} from '../controller/fs';
 import {ContentExplorer} from './ContentExplorer';
@@ -15,7 +15,10 @@ export interface AppState {
   previewVisible: boolean;
 }
 
-export class App extends React.Component<{}, AppState> {
+export class App
+  extends React.Component<{}, AppState>
+  implements ChapterTrigger, TopicTrigger
+{
   public constructor(props: {}) {
     super(props);
     this.state = {
@@ -78,7 +81,7 @@ export class App extends React.Component<{}, AppState> {
     const storeDirectoryHandle = await window.showDirectoryPicker();
     const contentController = new FileSystemController(storeDirectoryHandle);
     this.setState({contentController: contentController});
-    const newTopics = await contentController.getTopics(true);
+    const newTopics = await contentController.getTopics();
     this.setState({topics: newTopics});
   }
 
@@ -90,5 +93,29 @@ export class App extends React.Component<{}, AppState> {
       const contentId = chapter.getTopic()?.getId() + '-' + chapter.getId();
       this.setState({contentId: contentId, rawMarkdownText: rawText});
     }
+  }
+
+  async beforeChapterCreation(chapter: Chapter): Promise<void> {
+    await this.state.contentController?.newChapter(chapter, '');
+  }
+
+  async beforeChapterMove(chapter: Chapter, newTopic: Topic): Promise<void> {
+    await this.state.contentController?.moveChapter(chapter, newTopic);
+  }
+
+  async beforeChapterRename(chapter: Chapter, newName: string): Promise<void> {
+    await this.state.contentController?.renameChapter(chapter, newName);
+  }
+
+  async beforeChapterDeletion(chapter: Chapter): Promise<void> {
+    await this.state.contentController?.deleteChapter(chapter);
+  }
+
+  async beforeTopicDeletion(topic: Topic): Promise<void> {
+    await this.state.contentController?.deleteTopic(topic);
+  }
+
+  async beforeTopicRename(topic: Topic, newName: string): Promise<void> {
+    await this.state.contentController?.renameTopic(topic, newName);
   }
 }
