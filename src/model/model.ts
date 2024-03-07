@@ -26,7 +26,7 @@ export abstract class MonitoredBase<TTrigger, TObserver> {
     }
   }
 
-  public chainMutation<TField>(
+  public chainMutation(
     triggerAction: (trigger: TTrigger, obj: this) => Promise<void>,
     mutation: (obj: this) => void,
     observerAction: (obs: TObserver, obj: this) => Promise<void>
