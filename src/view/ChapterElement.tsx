@@ -64,9 +64,7 @@ export class ChapterElement extends React.Component<
             }
             autoFocus={true}
             defaultValue={this.props.chapter.getDisplayName()}
-            onChange={e =>
-              this.setState({newChapterName: e.target.value.trim()})
-            }
+            onChange={e => this.setState({newChapterName: e.target.value})}
           ></input>
           <input type="submit" style={{display: 'none'}} tabIndex={-1}></input>
           <input type="reset" style={{display: 'none'}} tabIndex={-1}></input>
@@ -100,7 +98,7 @@ export class ChapterElement extends React.Component<
     const liElem = this.liRef.current as HTMLLIElement;
     if (liElem) {
       liElem.dispatchEvent(
-        new CustomEvent<Chapter>('chapterselectedevent', {
+        new CustomEvent<Chapter>('chapterSelected', {
           detail: this.props.chapter,
           bubbles: true,
           cancelable: false,

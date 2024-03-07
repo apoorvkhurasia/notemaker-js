@@ -1,8 +1,9 @@
 import {parse} from 'marked';
 import React from 'react';
+import {Chapter} from '../model/model';
 
 export interface ContentViewerProps {
-  contentId: string;
+  selectedChapter: Chapter | null;
   originalRawMarkdownText: string;
   caretPos: number;
   editorVisible: boolean;
@@ -47,7 +48,9 @@ export class ContentViewer extends React.Component<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     snapshot?: unknown
   ): void {
-    if (prevProps.contentId === this.props.contentId) {
+    if (
+      prevProps.selectedChapter?.getId() === this.props.selectedChapter?.getId()
+    ) {
       return;
     }
     this.update(this.props.originalRawMarkdownText);
@@ -59,7 +62,7 @@ export class ContentViewer extends React.Component<
         <textarea
           id="markdownInput"
           style={
-            this.props.contentId === '-1'
+            this.props.selectedChapter === null
               ? {display: 'none'}
               : {display: 'block'}
           }

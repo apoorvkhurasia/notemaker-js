@@ -73,14 +73,12 @@ export class Topic extends MonitoredBase<TopicTrigger, TopicObserver> {
       return;
     }
     const oldTopic = chapter.getTopic();
+    chapter.__dangerouslySetBacklink(this);
     if (oldTopic === null) {
       //We are dealing with a brand new chapter
       chapter.chainMutation(
         (t: ChapterTrigger, c: Chapter) => t.beforeChapterCreation(c),
-        (c: Chapter) => {
-          this.chapters.push(c);
-          c.__dangerouslySetBacklink(this);
-        },
+        (c: Chapter) => this.chapters.push(c),
         (obs: ChapterObserver, c: Chapter) => obs.afterChapterCreation(c)
       );
     } else {
@@ -89,7 +87,6 @@ export class Topic extends MonitoredBase<TopicTrigger, TopicObserver> {
         (c: Chapter) => {
           del<Chapter>(oldTopic.chapters, c);
           this.chapters.push(c);
-          c.__dangerouslySetBacklink(this);
         },
         (obs: ChapterObserver, c: Chapter) => obs.afterChapterMove(c, oldTopic)
       );
@@ -118,6 +115,17 @@ export class Topic extends MonitoredBase<TopicTrigger, TopicObserver> {
         topic.chapters.forEach(c => topic.removeChapter(c));
       },
       (o: TopicObserver, topic: Topic) => o.afterTopicDeletion(topic)
+    );
+  }
+
+  public checksum(): string {
+    return (
+      this.getId() +
+      '-' +
+      this.chapters
+        .map(c => c.getId())
+        .toSorted()
+        .reduce((id1, id2) => id1 + '-' + id2, '')
     );
   }
 }

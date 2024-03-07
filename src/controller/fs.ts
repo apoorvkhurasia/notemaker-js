@@ -149,7 +149,25 @@ export class FileSystemController implements ContentController {
   }
 
   public async newChapter(chapter: Chapter, text: string): Promise<void> {
+    const topic = chapter.getTopic();
+    if (topic === null) {
+      return;
+    }
     this.createOrUpdateChapter(chapter, text, true);
+    const metadata = await this.getMetadata();
+    if (metadata === null) {
+      return;
+    }
+    for (const topicShell of metadata.topics) {
+      if (topicShell.id === topic.getId()) {
+        topicShell.chapters.push({
+          id: chapter.getId(),
+          displayName: chapter.getDisplayName(),
+        });
+        break;
+      }
+    }
+    await this.writeMetadata(metadata);
   }
 
   public async saveChapter(chapter: Chapter, text: string): Promise<void> {
@@ -162,7 +180,7 @@ export class FileSystemController implements ContentController {
     create: boolean
   ): Promise<void> {
     const chapterHandle = await this.getChapterFileHandle(chapter, create);
-    if (chapterHandle !== null && text.length > 0) {
+    if (chapterHandle !== null) {
       const chapterWritable = await chapterHandle.createWritable();
       try {
         await chapterWritable.write(text);
