@@ -26,7 +26,7 @@ export abstract class MonitoredBase<TTrigger, TObserver> {
     }
   }
 
-  public chainMutation(
+  public async chainMutation(
     triggerAction: (trigger: TTrigger, obj: this) => Promise<void>,
     mutation: (obj: this) => void,
     observerAction: (obs: TObserver, obj: this) => Promise<void>
@@ -34,11 +34,9 @@ export abstract class MonitoredBase<TTrigger, TObserver> {
     //Copy triggers and observers for thread safety
     const copyT = this.triggers.map(t => t);
     const copyO = this.observers.map(o => o);
-    return Promise.all(copyT.map(t => triggerAction(t, this)))
-      .then(() => mutation(this))
-      .then(() => {
-        copyO.forEach(obs => observerAction(obs, this));
-      });
+    await Promise.all(copyT.map(t => triggerAction(t, this)));
+    mutation(this);
+    await Promise.all(copyO.map(o => observerAction(o, this)));
   }
 }
 
