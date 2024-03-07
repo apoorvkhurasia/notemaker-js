@@ -31,10 +31,13 @@ export abstract class MonitoredBase<TTrigger, TObserver> {
     mutation: (obj: this) => void,
     observerAction: (obs: TObserver, obj: this) => Promise<void>
   ) {
-    Promise.all(this.triggers.map(t => triggerAction(t, this)))
+    //Copy triggers and observers for thread safety
+    const copyT = this.triggers.map(t => t);
+    const copyO = this.observers.map(o => o);
+    return Promise.all(copyT.map(t => triggerAction(t, this)))
       .then(() => mutation(this))
       .then(() => {
-        this.observers.forEach(obs => observerAction(obs, this));
+        copyO.forEach(obs => observerAction(obs, this));
       });
   }
 }
