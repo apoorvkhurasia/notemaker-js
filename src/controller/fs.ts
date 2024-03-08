@@ -1,18 +1,19 @@
+import {del} from '../lib/utils';
 import {Chapter, Topic} from '../model/model';
-import {ContentController} from './contentcontroller';
+import {ContentController, ContentObserver} from './contentcontroller';
 
-export type ChapterShell = {
+type ChapterShell = {
   id: string;
   displayName: string;
 };
 
-export type TopicShell = {
+type TopicShell = {
   id: string;
   displayName: string;
   chapters: ChapterShell[];
 };
 
-export type StoreMetadata = {
+type StoreMetadata = {
   id: string;
   displayName: string;
   topics: TopicShell[];
@@ -20,18 +21,43 @@ export type StoreMetadata = {
 
 export class FileSystemController implements ContentController {
   private contentRootHandle: FileSystemDirectoryHandle;
+  private observers: ContentObserver[] = [];
+  private metadata: StoreMetadata | null = null;
 
   public constructor(contentRootHandle: FileSystemDirectoryHandle) {
     this.contentRootHandle = contentRootHandle;
   }
 
+  private async getMetadata(): Promise<StoreMetadata> {
+    let metadata = this.metadata;
+    if (metadata === null) {
+      metadata = await this.getMetadataFromFile();
+    }
+    if (metadata === null) {
+      metadata = {
+        id: crypto.randomUUID(),
+        displayName: 'My first notebook',
+        topics: [],
+      };
+    }
+    this.metadata = metadata;
+    return metadata;
+  }
+
+  public addObserver(obs: ContentObserver): void {
+    const index = this.observers.indexOf(obs);
+    if (index <= 0) {
+      this.observers.push(obs);
+    }
+  }
+
+  public removeObserver(obs: ContentObserver): void {
+    del<ContentObserver>(this.observers, obs);
+  }
+
   public async getTopics(): Promise<Topic[]> {
     const topics = new Array<Topic>();
     const metadata = await this.getMetadata();
-    if (metadata === null) {
-      //TODO: Handle orphan nodes later
-      return topics;
-    }
     for (const topicShell of metadata.topics) {
       const topic = new Topic(topicShell.id, topicShell.displayName);
       for (const chapterShell of topicShell.chapters) {
@@ -54,11 +80,19 @@ export class FileSystemController implements ContentController {
 
   public async deleteTopic(topic: Topic): Promise<void> {
     const metadata = await this.getMetadata();
-    if (metadata === null) {
-      return;
+    const remainingTopics = new Array<TopicShell>();
+    for (const t of metadata.topics) {
+      if (t.id !== topic.getId()) {
+        remainingTopics.push(t);
+      } else {
+        for (const c of topic.getChapters()) {
+          await this.deleteChapter(c);
+        }
+      }
     }
-    metadata.topics = metadata.topics.filter(t => t.id !== topic.getId());
-    this.writeMetadata(metadata);
+    metadata.topics = remainingTopics;
+    this.writeMetadataToFile();
+    this.observers.forEach(obs => obs.onTopicDeleted(topic));
   }
 
   public async deleteChapter(chapter: Chapter): Promise<void> {
@@ -68,28 +102,28 @@ export class FileSystemController implements ContentController {
       return;
     }
     const metadata = await this.getMetadata();
-    if (metadata !== null) {
-      for (const topicShell of metadata.topics) {
-        if (topicShell.id === topic.getId()) {
-          topicShell.chapters = topicShell.chapters.filter(
-            c => c.id === chapter.getId()
-          );
-          break;
-        }
+    for (const topicShell of metadata.topics) {
+      if (topicShell.id === topic.getId()) {
+        topicShell.chapters = topicShell.chapters.filter(
+          c => c.id === chapter.getId()
+        );
+        break;
       }
-      await this.writeMetadata(metadata);
     }
+    await this.writeMetadataToFile();
+    this.observers.forEach(obs => obs.onChapterDeleted(chapter));
   }
 
   public async renameTopic(topic: Topic, newName: string): Promise<void> {
     const metadata = await this.getMetadata();
-    if (metadata !== null) {
-      for (const topicShell of metadata.topics) {
+    for (const topicShell of metadata.topics) {
+      if (topicShell.id === topic.getId()) {
         topicShell.displayName = newName;
-        break;
       }
-      await this.writeMetadata(metadata);
+      break;
     }
+    await this.writeMetadataToFile();
+    this.observers.forEach(obs => obs.onTopicRenamed(topic, newName));
   }
 
   public async renameChapter(chapter: Chapter, newName: string): Promise<void> {
@@ -98,27 +132,21 @@ export class FileSystemController implements ContentController {
       return; //TODO: Handle orphan nodes later
     }
     const metadata = await this.getMetadata();
-    if (metadata === null) {
-      return;
-    }
     for (const topicShell of metadata.topics) {
       if (topicShell.id === topic.getId()) {
         for (const chapter of topicShell.chapters) {
           chapter.displayName = newName;
           break;
         }
+        break;
       }
-      break;
     }
-    await this.writeMetadata(metadata);
+    await this.writeMetadataToFile();
+    this.observers.forEach(obs => obs.onChapterRenamed(chapter, newName));
   }
 
   public async moveChapter(chapter: Chapter, newTopic: Topic): Promise<void> {
     const metadata = await this.getMetadata();
-    if (metadata === null) {
-      return;
-    }
-
     const oldTopic = chapter.getTopic();
     for (const topicShell of metadata.topics) {
       if (oldTopic !== null && topicShell.id === oldTopic.getId()) {
@@ -132,7 +160,8 @@ export class FileSystemController implements ContentController {
         });
       }
     }
-    await this.writeMetadata(metadata);
+    await this.writeMetadataToFile();
+    this.observers.forEach(obs => obs.onChapterMoved(chapter, newTopic));
   }
 
   public async newTopic(topic: Topic): Promise<void> {
@@ -145,7 +174,8 @@ export class FileSystemController implements ContentController {
       displayName: topic.getDisplayName(),
       chapters: [],
     });
-    await this.writeMetadata(metadata);
+    await this.writeMetadataToFile();
+    this.observers.forEach(obs => obs.onTopicCreated(topic));
   }
 
   public async newChapter(chapter: Chapter, text: string): Promise<void> {
@@ -167,7 +197,8 @@ export class FileSystemController implements ContentController {
         break;
       }
     }
-    await this.writeMetadata(metadata);
+    await this.writeMetadataToFile();
+    this.observers.forEach(obs => obs.onChapterCreated(chapter));
   }
 
   public async saveChapter(chapter: Chapter, text: string): Promise<void> {
@@ -190,7 +221,7 @@ export class FileSystemController implements ContentController {
     }
   }
 
-  private async getMetadata(): Promise<StoreMetadata | null> {
+  private async getMetadataFromFile(): Promise<StoreMetadata | null> {
     try {
       const metadataFileHandle = await this.contentRootHandle.getFileHandle(
         'manifest.json',
@@ -198,6 +229,9 @@ export class FileSystemController implements ContentController {
           create: false,
         }
       );
+      if (!metadataFileHandle) {
+        return null;
+      }
       const metadataFile = await metadataFileHandle.getFile();
       const metadataText = await metadataFile.text();
       return <StoreMetadata>JSON.parse(metadataText);
@@ -206,7 +240,8 @@ export class FileSystemController implements ContentController {
     }
   }
 
-  private async writeMetadata(metadata: StoreMetadata): Promise<void> {
+  private async writeMetadataToFile(): Promise<void> {
+    const metadata = this.getMetadata();
     const metadataFileHandle = await this.contentRootHandle.getFileHandle(
       'manifest.json',
       {
