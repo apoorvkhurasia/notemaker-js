@@ -241,7 +241,7 @@ export class FileSystemController implements ContentController {
   }
 
   private async writeMetadataToFile(): Promise<void> {
-    const metadata = this.getMetadata();
+    const metadata = await this.getMetadata();
     const metadataFileHandle = await this.contentRootHandle.getFileHandle(
       'manifest.json',
       {

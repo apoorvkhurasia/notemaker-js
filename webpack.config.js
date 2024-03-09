@@ -2,10 +2,19 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const WorkboxPlugin = require('workbox-webpack-plugin');
 
 module.exports = {
+  devServer: {
+    devMiddleware: {
+      index: true,
+      mimeTypes: {phtml: 'text/html'},
+      publicPath: '/',
+      serverSideRender: true,
+      writeToDisk: true,
+    },
+  },
   entry: './src/index.tsx',
-  devtool: 'inline-source-map',
   module: {
     rules: [
       {
@@ -35,6 +44,12 @@ module.exports = {
       template: './src/index.html',
       favicon: './src/img/favicon.png',
       chunks: ['main'],
+    }),
+    new WorkboxPlugin.GenerateSW({
+      // these options encourage the ServiceWorkers to get in there fast
+      // and not allow any straggling "old" SWs to hang around
+      clientsClaim: true,
+      skipWaiting: true,
     }),
   ],
   optimization: {

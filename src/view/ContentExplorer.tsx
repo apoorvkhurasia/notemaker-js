@@ -34,18 +34,10 @@ export class ContentExplorer extends React.Component<
     if (explorer === null) {
       return;
     }
-    explorer.addEventListener('chapterSelected', (e: CustomEvent<Chapter>) => {
-      const selectedElem = e.target as HTMLLIElement;
-      if (selectedElem) {
-        selectedElem.classList.add('selected');
-      }
-      const oldSelectedElem = this.state
-        .selectedChapterElement as HTMLLIElement;
-      if (oldSelectedElem) {
-        oldSelectedElem.classList.remove('selected');
-      }
-      this.setState({selectedChapterElement: selectedElem});
-    });
+    explorer.addEventListener(
+      'chapterSelected',
+      this.chapterSelected.bind(this)
+    );
     explorer.addEventListener('inputProvided', this.inputFinalised.bind(this));
     explorer.addEventListener('inputCancelled', this.inputCancelled.bind(this));
   }
@@ -55,6 +47,10 @@ export class ContentExplorer extends React.Component<
     if (explorer === null) {
       return;
     }
+    explorer.removeEventListener(
+      'chapterSelected',
+      this.chapterSelected.bind(this)
+    );
     explorer.removeEventListener(
       'inputProvided',
       this.inputFinalised.bind(this)
@@ -67,8 +63,7 @@ export class ContentExplorer extends React.Component<
 
   shouldComponentUpdate(
     nextProps: Readonly<ExplorerProps>,
-    nextState: Readonly<ExplorerState>,
-    nextContext: any
+    nextState: Readonly<ExplorerState>
   ): boolean {
     const currChecksum = this.props.topics
       .map(t => t.checksum())
@@ -134,6 +129,18 @@ export class ContentExplorer extends React.Component<
   private createNewChapter(event: React.MouseEvent): void {
     this.setState({isAddingChapter: true, isAddingTopic: false});
     event.stopPropagation();
+  }
+
+  private chapterSelected(e: CustomEvent<Chapter>): void {
+    const selectedElem = e.target as HTMLLIElement;
+    if (selectedElem) {
+      selectedElem.classList.add('selected');
+    }
+    const oldSelectedElem = this.state.selectedChapterElement as HTMLLIElement;
+    if (oldSelectedElem) {
+      oldSelectedElem.classList.remove('selected');
+    }
+    this.setState({selectedChapterElement: selectedElem});
   }
 
   private inputCancelled(): void {
