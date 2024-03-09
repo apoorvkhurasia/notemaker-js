@@ -3,6 +3,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
+const WebpackPwaManifest = require('webpack-pwa-manifest');
 
 module.exports = {
   devServer: {
@@ -15,6 +16,7 @@ module.exports = {
     },
   },
   entry: './src/index.tsx',
+  devtool: 'inline-source-map',
   module: {
     rules: [
       {
@@ -50,6 +52,24 @@ module.exports = {
       // and not allow any straggling "old" SWs to hang around
       clientsClaim: true,
       skipWaiting: true,
+    }),
+    new WebpackPwaManifest({
+      name: 'MDTeX Note Taker',
+      short_name: 'mdtexnotes',
+      description: 'Take notes in markdown and LaTeX',
+      crossorigin: 'use-credentials', //can be null, use-credentials or anonymous
+      start_url: '/',
+      background_color: '#fffdf5',
+      theme_color: '#2f3d58',
+      orientation: 'any',
+      display: 'standalone',
+      publicPath: '/',
+      icons: [
+        {
+          src: path.resolve('src/img/icon.png'),
+          sizes: [96, 128, 192, 256, 384, 512], // multiple sizes
+        },
+      ],
     }),
   ],
   optimization: {

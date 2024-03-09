@@ -16,6 +16,7 @@ export interface AppState {
   caretPos: number;
   editorVisible: boolean;
   previewVisible: boolean;
+  lastSaveTs: Date | null;
 }
 
 export class App
@@ -35,6 +36,7 @@ export class App
       caretPos: 0,
       editorVisible: true,
       previewVisible: true,
+      lastSaveTs: null,
     };
   }
 
@@ -79,6 +81,18 @@ export class App
               >
                 folder_open
               </a>
+              <a
+                className="material-symbols-outlined"
+                onClick={this.togglePreview.bind(this)}
+              >
+                {this.state.previewVisible ? 'preview_off' : 'preview'}
+              </a>
+              <a
+                className="material-symbols-outlined"
+                onClick={this.toggleEditorVisibility.bind(this)}
+              >
+                {this.state.editorVisible ? 'edit_off' : 'edit'}
+              </a>
             </li>
           </ul>
         </nav>
@@ -91,11 +105,21 @@ export class App
           originalRawMarkdownText={this.state.rawMarkdownText}
         />
         <div className="footer">
-          <label style={{textAlign: 'left'}}>Word Count: 190</label>
-          <label style={{textAlign: 'right'}}>md</label>
+          {this.state.lastSaveTs && (
+            <label>Last saved: {this.state.lastSaveTs.toLocaleString()}</label>
+          )}
+          <label style={{float: 'right'}}>md</label>
         </div>
       </>
     );
+  }
+
+  private togglePreview(): void {
+    this.setState({previewVisible: !this.state.previewVisible});
+  }
+
+  private toggleEditorVisibility(): void {
+    this.setState({editorVisible: !this.state.editorVisible});
   }
 
   private async openStore(): Promise<void> {
@@ -149,30 +173,6 @@ export class App
       selectedTopic.addChapter(chapter);
       await controller.newChapter(chapter, '');
     }
-  }
-
-  async onChapterCreation(chapter: Chapter): Promise<void> {
-    await this.contentController?.newChapter(chapter, '');
-  }
-
-  async onChapterMove(chapter: Chapter, newTopic: Topic): Promise<void> {
-    await this.contentController?.moveChapter(chapter, newTopic);
-  }
-
-  async onChapterRename(chapter: Chapter, newName: string): Promise<void> {
-    await this.contentController?.renameChapter(chapter, newName);
-  }
-
-  async onChapterDeletion(chapter: Chapter): Promise<void> {
-    await this.contentController?.deleteChapter(chapter);
-  }
-
-  async onTopicDeletion(topic: Topic): Promise<void> {
-    await this.contentController?.deleteTopic(topic);
-  }
-
-  async onTopicRename(topic: Topic, newName: string): Promise<void> {
-    await this.contentController?.renameTopic(topic, newName);
   }
 
   onTopicCreated(topic: Topic): void {

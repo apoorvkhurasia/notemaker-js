@@ -1,15 +1,14 @@
 {
   "devDependencies": {
-    "@types/markdown-it": "^13.0.7",
-    "@types/node": "20.8.2",
+    "@types/node": "^20.8.2",
+    "@types/showdown": "^2.0.6",
     "@types/wicg-file-system-access": "^2023.10.4",
     "css-loader": "^6.10.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "gts": "^5.2.0",
     "html-webpack-plugin": "^5.6.0",
     "http-server": "^14.1.1",
-    "markdown-it": "^14.0.0",
-    "markdown-it-mathjax3": "^4.3.2",
+    "showdown": "^2.1.0",
     "style-loader": "^3.3.4",
     "terser-webpack-plugin": "^5.3.10",
     "ts-loader": "^9.5.1",
@@ -17,6 +16,7 @@
     "webpack": "^5.90.3",
     "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
+    "webpack-pwa-manifest": "^4.3.0",
     "workbox-webpack-plugin": "^7.0.0"
   },
   "scripts": {

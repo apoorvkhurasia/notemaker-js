@@ -4,7 +4,7 @@
     "node/no-unpublished-import": [
       "error",
       {
-        "allowModules": ["markdown-it", "markdown-it-mathjax3"]
+        "allowModules": ["showdown"]
       }
     ],
     "prettier/prettier": [

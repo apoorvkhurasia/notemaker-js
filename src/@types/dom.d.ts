@@ -8,6 +8,7 @@ declare global {
     inputProvided: CustomEvent<string>;
     inputCancelled: Event;
     topicSelected: CustomEvent<Topic>;
+    chapterContentChanged: CustomEvent<Chapter>;
   }
 }
 export {}; //keep that for TS compiler.

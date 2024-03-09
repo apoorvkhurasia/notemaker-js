@@ -2,9 +2,9 @@ import React from 'react';
 import {App} from './view/App';
 import {createRoot} from 'react-dom/client';
 
-require('./styles/fonts.css');
-require('./styles/layout.css');
-require('./styles/main.css');
+import './styles/fonts.css';
+import './styles/layout.css';
+import './styles/main.css';
 
 const appElem = document.getElementById('app');
 if (appElem !== null) {
