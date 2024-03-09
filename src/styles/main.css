@@ -20,7 +20,7 @@ pre,
 tt,
 kbd,
 samp {
-  font-family: 'Fira Code', monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .material-symbols-outlined {
@@ -153,7 +153,7 @@ samp {
   resize: none;
   border: none;
   border-right: 1px solid rgb(37, 37, 37);
-  font-family: 'Fira Code', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 1em;
   margin: 0;
   padding: 0;
@@ -181,7 +181,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: 'Open Sans', serif;
+  font-family: 'Oswald', serif;
   font-optical-sizing: auto;
   color: dodgerblue;
   margin-top: 0.5em;
