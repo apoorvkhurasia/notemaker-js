@@ -1,4 +1,5 @@
 import {Chapter, Topic} from '../model/model';
+import {ChapterChangeArgs} from '../view/ContentViewer';
 
 declare global {
   interface GlobalEventHandlersEventMap {
@@ -8,7 +9,7 @@ declare global {
     inputProvided: CustomEvent<string>;
     inputCancelled: Event;
     topicSelected: CustomEvent<Topic>;
-    chapterContentChanged: CustomEvent<Chapter>;
+    chapterContentChanged: CustomEvent<ChapterChangeArgs>;
   }
 }
 export {}; //keep that for TS compiler.

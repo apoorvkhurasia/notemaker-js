@@ -10,7 +10,13 @@ export interface ContentViewerProps {
   previewVisible: boolean;
 }
 
+export interface ChapterChangeArgs {
+  chapter: Chapter;
+  rawMarkdownText: string;
+}
+
 export interface ContentViewerState {
+  isInitialising: boolean;
   rawMarkdownText: string;
   parsedHTML: string;
 }
@@ -39,37 +45,25 @@ export class ContentViewer extends React.Component<
     super(props);
     this.editorRef = createRef();
     this.state = {
+      isInitialising: true,
       rawMarkdownText: props.originalRawMarkdownText,
       parsedHTML: this.converter.makeHtml(props.originalRawMarkdownText),
     };
   }
 
-  update(rawText: string): void {
-    if (this.props.previewVisible) {
-      const html = this.converter.makeHtml(rawText);
-      this.setState({
-        rawMarkdownText: rawText,
-        parsedHTML: html,
-      });
-    } else {
-      this.setState({
-        rawMarkdownText: rawText,
-      });
-    }
-  }
-
   componentDidUpdate(
     prevProps: Readonly<ContentViewerProps>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    prevState: Readonly<ContentViewerState>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    snapshot?: unknown
+    _prevState: Readonly<ContentViewerState>,
+    _snapshot?: unknown
   ): void {
     if (
       prevProps.selectedChapter?.getId() !== this.props.selectedChapter?.getId()
     ) {
       //New chapter
-      this.update(this.props.originalRawMarkdownText);
+      this.setState({isInitialising: true}, () => {
+        this.update(this.props.originalRawMarkdownText);
+        this.setState({isInitialising: false});
+      });
     } else if (prevProps.previewVisible !== this.props.previewVisible) {
       this.update(this.state.rawMarkdownText);
     }
@@ -109,5 +103,33 @@ export class ContentViewer extends React.Component<
 
   private async onMarkdownChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     this.update(e.target.value);
+  }
+
+  private update(rawText: string): void {
+    const editor = this.editorRef.current;
+    if (!this.state.isInitialising && editor) {
+      editor.dispatchEvent(
+        new CustomEvent<ChapterChangeArgs>('chapterContentChanged', {
+          detail: {
+            chapter: this.props.selectedChapter as Chapter,
+            rawMarkdownText: rawText,
+          },
+          bubbles: true,
+          cancelable: false,
+          composed: false,
+        })
+      );
+    }
+    if (this.props.previewVisible) {
+      const html = this.converter.makeHtml(rawText);
+      this.setState({
+        rawMarkdownText: rawText,
+        parsedHTML: html,
+      });
+    } else {
+      this.setState({
+        rawMarkdownText: rawText,
+      });
+    }
   }
 }

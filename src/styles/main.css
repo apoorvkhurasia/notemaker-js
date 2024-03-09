@@ -172,13 +172,16 @@ samp {
   padding: 0;
   right: 0;
   box-sizing: border-box;
+  label {
+    margin: 2px;
+  }
 }
 
 h1,
 h2,
 h3,
 h4 {
-  font-family: 'Roboto Slab', serif;
+  font-family: 'Open Sans', serif;
   font-optical-sizing: auto;
   color: dodgerblue;
   margin-top: 0.5em;

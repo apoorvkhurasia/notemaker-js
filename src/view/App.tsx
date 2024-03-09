@@ -1,5 +1,5 @@
 import React from 'react';
-import {ContentViewer} from './ContentViewer';
+import {ChapterChangeArgs, ContentViewer} from './ContentViewer';
 import {Chapter, Topic} from '../model/model';
 import {
   ContentController,
@@ -24,6 +24,8 @@ export class App
   implements ContentObserver
 {
   private contentController: ContentController | null;
+  private unsavedChapters = new Map<string, ChapterChangeArgs>();
+  private static readonly SAVE_INTERVAL = 2000;
 
   public constructor(props: {}) {
     super(props);
@@ -51,9 +53,14 @@ export class App
       'newChapterRequested',
       this.createNewChapter.bind(this)
     );
+    document.addEventListener(
+      'chapterContentChanged',
+      this.chapterContentChanged.bind(this)
+    );
   }
 
   componentWillUnmount(): void {
+    clearTimeout(this.saveUnsavedChapters());
     document.removeEventListener(
       'chapterSelected',
       this.loadChapter.bind(this)
@@ -66,6 +73,10 @@ export class App
     document.removeEventListener(
       'newChapterRequested',
       this.createNewChapter.bind(this)
+    );
+    document.removeEventListener(
+      'chapterContentChanged',
+      this.chapterContentChanged.bind(this)
     );
   }
 
@@ -106,7 +117,7 @@ export class App
         />
         <div className="footer">
           {this.state.lastSaveTs && (
-            <label>Last saved: {this.state.lastSaveTs.toLocaleString()}</label>
+            <label>Autosaved: {this.state.lastSaveTs.toLocaleString()}</label>
           )}
           <label style={{float: 'right'}}>md</label>
         </div>
@@ -123,6 +134,7 @@ export class App
   }
 
   private async openStore(): Promise<void> {
+    clearTimeout(this.saveUnsavedChapters());
     const oldContentController = this.contentController;
     if (oldContentController !== null) {
       oldContentController.removeObserver(this);
@@ -141,6 +153,7 @@ export class App
   }
 
   private async loadChapter(e: CustomEvent<Chapter>): Promise<void> {
+    clearTimeout(this.saveUnsavedChapters());
     const controller = this.contentController;
     if (controller) {
       const chapter = e.detail as Chapter;
@@ -149,8 +162,29 @@ export class App
         selectedTopic: chapter.getTopic(),
         selectedChapter: chapter,
         rawMarkdownText: rawText,
+        lastSaveTs: null,
       });
+      this.saveUnsavedChapters();
     }
+  }
+
+  private chapterContentChanged(e: CustomEvent<ChapterChangeArgs>): void {
+    this.unsavedChapters.set(e.detail.chapter.getId(), e.detail);
+  }
+
+  private saveUnsavedChapters(): NodeJS.Timeout {
+    const controller = this.contentController;
+    if (controller) {
+      for (const [, args] of this.unsavedChapters.entries()) {
+        controller.saveChapter(args.chapter, args.rawMarkdownText).then(() => {
+          if (args.chapter === this.state.selectedChapter) {
+            this.setState({lastSaveTs: new Date()});
+          }
+        });
+      }
+    }
+    this.unsavedChapters.clear();
+    return setTimeout(this.saveUnsavedChapters.bind(this), App.SAVE_INTERVAL);
   }
 
   private selectTopic(e: CustomEvent<Topic>): void {
@@ -179,7 +213,7 @@ export class App
     this.setState({topics: this.state.topics.concat(topic)});
   }
 
-  onTopicRenamed(topic: Topic, newName: string): void {
+  onTopicRenamed(_topic: Topic, _newName: string): void {
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
@@ -189,19 +223,19 @@ export class App
     });
   }
 
-  onChapterCreated(chapter: Chapter): void {
+  onChapterCreated(_chapter: Chapter): void {
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
-  onChapterMoved(chapter: Chapter, newTopic: Topic): void {
+  onChapterMoved(_chapter: Chapter, _newTopic: Topic): void {
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
-  onChapterRenamed(chapter: Chapter, newName: string): void {
+  onChapterRenamed(_chapter: Chapter, _newName: string): void {
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
-  onChapterDeleted(chapter: Chapter): void {
+  onChapterDeleted(_chapter: Chapter): void {
     this.setState({topics: this.state.topics.map(x => x)});
   }
 }
