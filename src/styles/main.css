@@ -55,8 +55,9 @@ samp {
 
 .topmenu ul {
   text-align: left;
-  margin: 1px;
+  margin: 0;
   padding-inline-start: 2px;
+  padding-top: 0;
 }
 
 .topmenu.block-element ul {
@@ -71,7 +72,13 @@ samp {
   padding: 0;
   width: 150px;
   .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 20px;
+  }
+  .topmenu ul {
+    text-align: left;
+    margin: 0;
+    padding-inline-start: 2px;
+    padding-top: 0;
   }
   ul {
     list-style: none;

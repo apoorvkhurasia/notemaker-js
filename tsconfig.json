@@ -12,6 +12,6 @@
     "allowSyntheticDefaultImports": true,
     "lib": ["es2023", "dom", "dom.iterable"]
   },
-  "lib": ["marked", "dom.asynciterable"],
+  "lib": ["dom.asynciterable"],
   "include": ["./src/**/*"]
 }

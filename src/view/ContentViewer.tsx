@@ -1,4 +1,5 @@
-import {parse} from 'marked';
+import markdownIt from 'markdown-it';
+import mathjax3 from 'markdown-it-mathjax3';
 import React from 'react';
 import {Chapter} from '../model/model';
 
@@ -19,22 +20,22 @@ export class ContentViewer extends React.Component<
   ContentViewerProps,
   ContentViewerState
 > {
+  private md = markdownIt({
+    xhtmlOut: true,
+  });
+
   public constructor(props: ContentViewerProps) {
     super(props);
     this.state = {
       rawMarkdownText: props.originalRawMarkdownText,
       parsedHTML: '<div></div>',
     };
+    this.md.use(mathjax3);
   }
 
   update(rawText: string): void {
-    const htmlOrPromise = parse(rawText);
-    if (typeof htmlOrPromise === 'string') {
-      this.setState({rawMarkdownText: rawText, parsedHTML: htmlOrPromise});
-    } else {
-      this.setState({rawMarkdownText: rawText}); //This must always be done synchronously
-      htmlOrPromise.then(h => this.setState({parsedHTML: h}));
-    }
+    const html = this.md.render(rawText);
+    this.setState({rawMarkdownText: rawText, parsedHTML: html});
   }
 
   componentDidMount(): void {
