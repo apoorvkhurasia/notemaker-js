@@ -1,8 +1,10 @@
-export function del<T>(arr: T[], elem: T): void {
+export function del<T>(arr: T[], elem: T): boolean {
   const index = arr.indexOf(elem);
   if (index >= 0) {
     arr.splice(index, 1);
+    return true;
   }
+  return false;
 }
 
 export function computeIfAbsent<K, V>(

@@ -8,6 +8,9 @@ import {
 } from '../controller/contentcontroller';
 import {FileSystemController} from '../controller/fs';
 import {ChapterCreationArgs, ContentExplorer} from './ContentExplorer';
+import {ChapterRenameArgs} from './ChapterElement';
+import {ButtonlessForm} from './ButtonlessForm';
+import ReactDOM from 'react-dom';
 
 export interface AppState {
   contentController: ContentController | null;
@@ -27,7 +30,7 @@ export class App
   implements ContentObserver
 {
   private unsavedChapters = new Map<string, ChapterChangeArgs>();
-  private storeNameInput: React.RefObject<HTMLInputElement>;
+  private storeNameInput: React.RefObject<ButtonlessForm>;
   private static readonly SAVE_INTERVAL = 2000;
 
   public constructor(props: {}) {
@@ -61,6 +64,23 @@ export class App
       'chapterContentChanged',
       this.chapterContentChanged.bind(this)
     );
+    document.addEventListener(
+      'renameChapterRequseted',
+      this.renameChapterRequseted.bind(this)
+    );
+    const topicInputElem = ReactDOM.findDOMNode(
+      this.storeNameInput.current
+    ) as HTMLElement;
+    if (topicInputElem) {
+      topicInputElem.addEventListener(
+        'inputProvided',
+        this.createStore.bind(this)
+      );
+      topicInputElem.addEventListener(
+        'inputCancelled',
+        this.cancelCreatingStore.bind(this)
+      );
+    }
   }
 
   componentWillUnmount(): void {
@@ -81,6 +101,23 @@ export class App
       'chapterContentChanged',
       this.chapterContentChanged.bind(this)
     );
+    document.removeEventListener(
+      'renameChapterRequseted',
+      this.renameChapterRequseted.bind(this)
+    );
+    const topicInputElem = ReactDOM.findDOMNode(
+      this.storeNameInput.current
+    ) as HTMLElement;
+    if (topicInputElem) {
+      topicInputElem.removeEventListener(
+        'inputProvided',
+        this.createStore.bind(this)
+      );
+      topicInputElem.removeEventListener(
+        'inputCancelled',
+        this.cancelCreatingStore.bind(this)
+      );
+    }
   }
 
   public render() {
@@ -91,53 +128,21 @@ export class App
             <li>
               <a
                 className="material-symbols-outlined"
-                onClick={this.createStore.bind(this)}
+                onClick={(() => this.setState({askStoreName: true})).bind(this)}
               >
                 create_new_folder
               </a>
             </li>
-            {this.state.askStoreName && (
-              <li>
-                <form
-                  onSubmit={((
-                    e: React.SyntheticEvent<HTMLFormElement, Event>
-                  ) => {
-                    e.preventDefault();
-                    const input = this.storeNameInput.current;
-                    if (input && input.value.length > 0) {
-                      this.createOrOpenStore({storeName: input.value});
-                    }
-                    this.setState({askStoreName: false});
-                  }).bind(this)}
-                  onAbort={e => {
-                    e.preventDefault();
-                    this.setState({askStoreName: false});
-                  }}
-                >
-                  <input
-                    className="hideable-input"
-                    autoFocus={true}
-                    onKeyUp={((e: React.KeyboardEvent) => {
-                      if (e.key === 'Escape') {
-                        this.setState({askStoreName: false});
-                      }
-                    }).bind(this)}
-                    placeholder="Enter store's name."
-                    ref={this.storeNameInput}
-                  ></input>
-                  <input
-                    type="submit"
-                    style={{display: 'none'}}
-                    tabIndex={-1}
-                  ></input>
-                  <input
-                    type="reset"
-                    style={{display: 'none'}}
-                    tabIndex={-1}
-                  ></input>
-                </form>
-              </li>
-            )}
+            <li
+              style={{
+                display: this.state.askStoreName ? 'inline-block' : 'none',
+              }}
+            >
+              <ButtonlessForm
+                promptText="Enter store name"
+                ref={this.storeNameInput}
+              />
+            </li>
             <li>
               <a
                 className="material-symbols-outlined"
@@ -164,7 +169,7 @@ export class App
             </li>
           </ul>
         </nav>
-        {this.state.contentController && (
+        {this.state.contentController ? (
           <>
             <ContentExplorer topics={this.state.topics} />
             <ContentViewer
@@ -175,6 +180,12 @@ export class App
               originalRawMarkdownText={this.state.rawMarkdownText}
             />
           </>
+        ) : (
+          <div className="init-message-screen">
+            <div className="init-message">
+              Create a new store or Open a new store
+            </div>
+          </div>
         )}
         <div className="footer">
           {this.state.lastSaveTs && (
@@ -194,8 +205,13 @@ export class App
     this.setState({editorVisible: !this.state.editorVisible});
   }
 
-  private async createStore(): Promise<void> {
-    this.setState({askStoreName: true});
+  private async createStore(e: CustomEvent<string>): Promise<void> {
+    await this.createOrOpenStore({storeName: e.detail.trim()});
+    this.setState({askStoreName: false});
+  }
+
+  private cancelCreatingStore(): void {
+    this.setState({askStoreName: false});
   }
 
   private async openStore(): Promise<void> {
@@ -206,24 +222,30 @@ export class App
     options: StoreCreationOptions | null
   ): Promise<void> {
     clearTimeout(this.saveUnsavedChapters());
-    const oldContentController = this.state.contentController;
-    if (oldContentController !== null) {
-      oldContentController.removeObserver(this);
-    }
+    this.state.contentController?.removeObserver(this);
 
-    const storeDirectoryHandle = await window.showDirectoryPicker();
-    const contentController = new FileSystemController(storeDirectoryHandle);
-    if (options) {
-      contentController.initialiseNewStore(options);
+    try {
+      const storeDirectoryHandle = await window.showDirectoryPicker();
+      if (storeDirectoryHandle) {
+        const contentController = new FileSystemController(
+          storeDirectoryHandle
+        );
+        if (options) {
+          contentController.initialiseNewStore(options);
+        }
+        const newTopics = await contentController.getTopics();
+        this.setState({
+          contentController: contentController,
+          topics: newTopics,
+          selectedChapter: null,
+          selectedTopic: null,
+        });
+        contentController.addObserver(this);
+      }
+    } catch (_err) {
+      this.state.contentController?.addObserver(this);
+      this.saveUnsavedChapters();
     }
-    const newTopics = await contentController.getTopics();
-    this.setState({
-      contentController: contentController,
-      topics: newTopics,
-      selectedChapter: null,
-      selectedTopic: null,
-    });
-    contentController.addObserver(this);
   }
 
   private async loadChapter(e: CustomEvent<Chapter>): Promise<void> {
@@ -281,6 +303,16 @@ export class App
     }
   }
 
+  private async renameChapterRequseted(
+    e: CustomEvent<ChapterRenameArgs>
+  ): Promise<void> {
+    const controller = this.state.contentController;
+    const chapter = e.detail.chapter;
+    if (controller && chapter) {
+      await controller.renameChapter(chapter, e.detail.newName);
+    }
+  }
+
   onTopicCreated(topic: Topic): void {
     this.setState({topics: this.state.topics.concat(topic)});
   }
@@ -303,7 +335,8 @@ export class App
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
-  onChapterRenamed(_chapter: Chapter, _newName: string): void {
+  onChapterRenamed(chapter: Chapter, newName: string): void {
+    chapter.setDisplayName(newName);
     this.setState({topics: this.state.topics.map(x => x)});
   }
 

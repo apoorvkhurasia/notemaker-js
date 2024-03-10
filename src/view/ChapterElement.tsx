@@ -11,6 +11,11 @@ export interface ChapterState {
   chapter: Chapter;
 }
 
+export type ChapterRenameArgs = {
+  chapter: Chapter;
+  newName: string;
+};
+
 export class ChapterElement extends React.Component<
   ChapterProps,
   ChapterState
@@ -44,7 +49,7 @@ export class ChapterElement extends React.Component<
         <form
           onSubmit={e => {
             e.preventDefault();
-            this.state.chapter.setDisplayName(this.state.newChapterName);
+            this.renameChapter(this.state.newChapterName);
             this.hideEditor();
           }}
           onAbort={e => {
@@ -100,6 +105,20 @@ export class ChapterElement extends React.Component<
       liElem.dispatchEvent(
         new CustomEvent<Chapter>('chapterSelected', {
           detail: this.props.chapter,
+          bubbles: true,
+          cancelable: false,
+          composed: false,
+        })
+      );
+    }
+  }
+
+  private renameChapter(newName: string): void {
+    const liElem = this.liRef.current as HTMLLIElement;
+    if (liElem) {
+      liElem.dispatchEvent(
+        new CustomEvent<ChapterRenameArgs>('renameChapterRequseted', {
+          detail: {chapter: this.props.chapter, newName: newName},
           bubbles: true,
           cancelable: false,
           composed: false,

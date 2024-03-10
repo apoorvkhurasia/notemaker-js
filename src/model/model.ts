@@ -35,23 +35,13 @@ export class Topic {
   }
 
   public removeChapter(chapter: Chapter): void {
-    del<Chapter>(this.chapters, chapter);
-    chapter.__dangerouslySetBacklink(null);
+    if (del<Chapter>(this.chapters, chapter)) {
+      chapter.__dangerouslySetBacklink(null);
+    }
   }
 
   public getChapters(): Array<Chapter> {
     return this.chapters;
-  }
-
-  public checksum(): string {
-    return (
-      this.getId() +
-      '-' +
-      this.chapters
-        .map(c => c.getId())
-        .toSorted()
-        .reduce((id1, id2) => id1 + '-' + id2, '')
-    );
   }
 }
 
