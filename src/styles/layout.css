@@ -39,3 +39,8 @@
   grid-column: 1/4;
   grid-row: 3;
 }
+
+.ide-styled-grid > .init-message-screen {
+  grid-column: 1/4;
+  grid-row: 2/3;
+}
