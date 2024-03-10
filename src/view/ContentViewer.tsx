@@ -40,10 +40,12 @@ export class ContentViewer extends React.Component<
     simpleLineBreaks: true,
   });
   private editorRef: React.RefObject<HTMLTextAreaElement>;
+  private previewRef: React.RefObject<HTMLDivElement>;
 
   public constructor(props: ContentViewerProps) {
     super(props);
     this.editorRef = createRef();
+    this.previewRef = createRef();
     this.state = {
       isInitialising: true,
       rawMarkdownText: props.originalRawMarkdownText,
@@ -63,6 +65,14 @@ export class ContentViewer extends React.Component<
       this.setState({isInitialising: true}, () => {
         this.update(this.props.originalRawMarkdownText);
         this.setState({isInitialising: false});
+        const preview = this.previewRef.current;
+        if (preview) {
+          preview.scrollTop = 0;
+        }
+        const editor = this.editorRef.current;
+        if (editor) {
+          editor.scrollTop = 0;
+        }
       });
     } else if (prevProps.previewVisible !== this.props.previewVisible) {
       this.update(this.state.rawMarkdownText);
@@ -91,6 +101,7 @@ export class ContentViewer extends React.Component<
         ></textarea>
         <div
           id="preview"
+          ref={this.previewRef}
           className={this.props.editorVisible ? 'half-preview' : 'full-preview'}
           style={
             this.props.previewVisible ? {display: 'block'} : {display: 'none'}
