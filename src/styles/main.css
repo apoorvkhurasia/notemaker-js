@@ -52,6 +52,7 @@ samp {
   display: inline-block;
   cursor: pointer;
   margin: 0.15rem;
+  vertical-align: middle;
 }
 
 .topmenu ul {
@@ -114,7 +115,8 @@ samp {
   li.chapter:hover,
   li.chapter:active,
   li.chapter:focus,
-  .selected,
+  li.chapter.selected,
+  li.topic.selected > details > summary,
   li.topic > details > summary:hover {
     background-color: #ddd;
     font-weight: normal;

@@ -1,14 +1,17 @@
-import React from 'react';
+import React, {createRef} from 'react';
 import {ChapterChangeArgs, ContentViewer} from './ContentViewer';
 import {Chapter, Topic} from '../model/model';
 import {
   ContentController,
   ContentObserver,
+  StoreCreationOptions,
 } from '../controller/contentcontroller';
 import {FileSystemController} from '../controller/fs';
-import {ContentExplorer} from './ContentExplorer';
+import {ChapterCreationArgs, ContentExplorer} from './ContentExplorer';
 
 export interface AppState {
+  contentController: ContentController | null;
+  askStoreName: boolean;
   topics: Topic[];
   selectedTopic: Topic | null;
   selectedChapter: Chapter | null;
@@ -23,14 +26,16 @@ export class App
   extends React.Component<{}, AppState>
   implements ContentObserver
 {
-  private contentController: ContentController | null;
   private unsavedChapters = new Map<string, ChapterChangeArgs>();
+  private storeNameInput: React.RefObject<HTMLInputElement>;
   private static readonly SAVE_INTERVAL = 2000;
 
   public constructor(props: {}) {
     super(props);
-    this.contentController = null;
+    this.storeNameInput = createRef();
     this.state = {
+      contentController: null,
+      askStoreName: false,
       topics: [],
       selectedTopic: null,
       selectedChapter: null,
@@ -44,7 +49,6 @@ export class App
 
   componentDidMount(): void {
     document.addEventListener('chapterSelected', this.loadChapter.bind(this));
-    document.addEventListener('topicSelected', this.selectTopic.bind(this));
     document.addEventListener(
       'newTopicRequested',
       this.createNewTopic.bind(this)
@@ -65,7 +69,6 @@ export class App
       'chapterSelected',
       this.loadChapter.bind(this)
     );
-    document.removeEventListener('topicSelected', this.selectTopic.bind(this));
     document.removeEventListener(
       'newTopicRequested',
       this.createNewTopic.bind(this)
@@ -83,8 +86,58 @@ export class App
   public render() {
     return (
       <>
-        <nav className="topmenu">
+        <nav className="topmenu" style={{width: '100%'}}>
           <ul>
+            <li>
+              <a
+                className="material-symbols-outlined"
+                onClick={this.createStore.bind(this)}
+              >
+                create_new_folder
+              </a>
+            </li>
+            {this.state.askStoreName && (
+              <li>
+                <form
+                  onSubmit={((
+                    e: React.SyntheticEvent<HTMLFormElement, Event>
+                  ) => {
+                    e.preventDefault();
+                    const input = this.storeNameInput.current;
+                    if (input && input.value.length > 0) {
+                      this.createOrOpenStore({storeName: input.value});
+                    }
+                    this.setState({askStoreName: false});
+                  }).bind(this)}
+                  onAbort={e => {
+                    e.preventDefault();
+                    this.setState({askStoreName: false});
+                  }}
+                >
+                  <input
+                    className="hideable-input"
+                    autoFocus={true}
+                    onKeyUp={((e: React.KeyboardEvent) => {
+                      if (e.key === 'Escape') {
+                        this.setState({askStoreName: false});
+                      }
+                    }).bind(this)}
+                    placeholder="Enter store's name."
+                    ref={this.storeNameInput}
+                  ></input>
+                  <input
+                    type="submit"
+                    style={{display: 'none'}}
+                    tabIndex={-1}
+                  ></input>
+                  <input
+                    type="reset"
+                    style={{display: 'none'}}
+                    tabIndex={-1}
+                  ></input>
+                </form>
+              </li>
+            )}
             <li>
               <a
                 className="material-symbols-outlined"
@@ -92,12 +145,16 @@ export class App
               >
                 folder_open
               </a>
+            </li>
+            <li>
               <a
                 className="material-symbols-outlined"
                 onClick={this.togglePreview.bind(this)}
               >
                 {this.state.previewVisible ? 'preview_off' : 'preview'}
               </a>
+            </li>
+            <li>
               <a
                 className="material-symbols-outlined"
                 onClick={this.toggleEditorVisibility.bind(this)}
@@ -107,14 +164,18 @@ export class App
             </li>
           </ul>
         </nav>
-        <ContentExplorer topics={this.state.topics} />
-        <ContentViewer
-          selectedChapter={this.state.selectedChapter}
-          caretPos={this.state.caretPos}
-          editorVisible={this.state.editorVisible}
-          previewVisible={this.state.previewVisible}
-          originalRawMarkdownText={this.state.rawMarkdownText}
-        />
+        {this.state.contentController && (
+          <>
+            <ContentExplorer topics={this.state.topics} />
+            <ContentViewer
+              selectedChapter={this.state.selectedChapter}
+              caretPos={this.state.caretPos}
+              editorVisible={this.state.editorVisible}
+              previewVisible={this.state.previewVisible}
+              originalRawMarkdownText={this.state.rawMarkdownText}
+            />
+          </>
+        )}
         <div className="footer">
           {this.state.lastSaveTs && (
             <label>Autosaved: {this.state.lastSaveTs.toLocaleString()}</label>
@@ -133,28 +194,41 @@ export class App
     this.setState({editorVisible: !this.state.editorVisible});
   }
 
+  private async createStore(): Promise<void> {
+    this.setState({askStoreName: true});
+  }
+
   private async openStore(): Promise<void> {
+    await this.createOrOpenStore(null);
+  }
+
+  private async createOrOpenStore(
+    options: StoreCreationOptions | null
+  ): Promise<void> {
     clearTimeout(this.saveUnsavedChapters());
-    const oldContentController = this.contentController;
+    const oldContentController = this.state.contentController;
     if (oldContentController !== null) {
       oldContentController.removeObserver(this);
     }
 
     const storeDirectoryHandle = await window.showDirectoryPicker();
     const contentController = new FileSystemController(storeDirectoryHandle);
-    this.contentController = contentController;
+    if (options) {
+      contentController.initialiseNewStore(options);
+    }
     const newTopics = await contentController.getTopics();
     this.setState({
+      contentController: contentController,
       topics: newTopics,
       selectedChapter: null,
       selectedTopic: null,
     });
-    this.contentController.addObserver(this);
+    contentController.addObserver(this);
   }
 
   private async loadChapter(e: CustomEvent<Chapter>): Promise<void> {
     clearTimeout(this.saveUnsavedChapters());
-    const controller = this.contentController;
+    const controller = this.state.contentController;
     if (controller) {
       const chapter = e.detail as Chapter;
       const rawText = await controller.getChapterText(chapter);
@@ -173,7 +247,7 @@ export class App
   }
 
   private saveUnsavedChapters(): NodeJS.Timeout {
-    const controller = this.contentController;
+    const controller = this.state.contentController;
     if (controller) {
       for (const [, args] of this.unsavedChapters.entries()) {
         controller.saveChapter(args.chapter, args.rawMarkdownText).then(() => {
@@ -187,24 +261,22 @@ export class App
     return setTimeout(this.saveUnsavedChapters.bind(this), App.SAVE_INTERVAL);
   }
 
-  private selectTopic(e: CustomEvent<Topic>): void {
-    this.setState({selectedTopic: e.detail});
-  }
-
   private async createNewTopic(e: CustomEvent<string>): Promise<void> {
-    const controller = this.contentController;
+    const controller = this.state.contentController;
     if (controller) {
       const topic = new Topic(crypto.randomUUID(), e.detail);
       await controller.newTopic(topic);
     }
   }
 
-  private async createNewChapter(e: CustomEvent<string>): Promise<void> {
-    const controller = this.contentController;
-    const selectedTopic = this.state.selectedTopic;
-    if (controller && selectedTopic !== null) {
-      const chapter = new Chapter(crypto.randomUUID(), e.detail);
-      selectedTopic.addChapter(chapter);
+  private async createNewChapter(
+    e: CustomEvent<ChapterCreationArgs>
+  ): Promise<void> {
+    const controller = this.state.contentController;
+    const topic = e.detail.topic;
+    if (controller && topic !== null) {
+      const chapter = new Chapter(crypto.randomUUID(), e.detail.chapterName);
+      topic.addChapter(chapter);
       await controller.newChapter(chapter, '');
     }
   }
