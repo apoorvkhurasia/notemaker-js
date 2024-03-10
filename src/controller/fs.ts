@@ -1,6 +1,10 @@
 import {del} from '../lib/utils';
 import {Chapter, Topic} from '../model/model';
-import {ContentController, ContentObserver} from './contentcontroller';
+import {
+  ContentController,
+  ContentObserver,
+  StoreCreationOptions,
+} from './contentcontroller';
 
 type ChapterShell = {
   id: string;
@@ -42,6 +46,17 @@ export class FileSystemController implements ContentController {
     }
     this.metadata = metadata;
     return metadata;
+  }
+
+  public async initialiseNewStore(
+    options: StoreCreationOptions
+  ): Promise<void> {
+    this.metadata = {
+      id: crypto.randomUUID(),
+      displayName: options.storeName,
+      topics: [],
+    };
+    await this.writeMetadataToFile();
   }
 
   public addObserver(obs: ContentObserver): void {
@@ -235,7 +250,7 @@ export class FileSystemController implements ContentController {
       const metadataFile = await metadataFileHandle.getFile();
       const metadataText = await metadataFile.text();
       return <StoreMetadata>JSON.parse(metadataText);
-    } catch (err) {
+    } catch (_err) {
       return null;
     }
   }
@@ -264,7 +279,7 @@ export class FileSystemController implements ContentController {
       return this.contentRootHandle.getFileHandle(chapter.getId() + '.md', {
         create: create,
       });
-    } catch (err) {
+    } catch (_err) {
       return null;
     }
   }

@@ -1,5 +1,9 @@
 import {Chapter, Topic} from '../model/model';
 
+export type StoreCreationOptions = {
+  storeName: string;
+};
+
 export interface ContentObserver {
   onTopicCreated(topic: Topic): void;
   onTopicRenamed(topic: Topic, newName: string): void;
@@ -11,6 +15,7 @@ export interface ContentObserver {
 }
 
 export interface ContentController {
+  initialiseNewStore(options: StoreCreationOptions): Promise<void>;
   getTopics(withChapters: boolean): Promise<Topic[]>;
   getChapterText(chapter: Chapter): Promise<string>;
   deleteTopic(topic: Topic): Promise<void>;

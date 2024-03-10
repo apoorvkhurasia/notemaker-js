@@ -1,7 +1,14 @@
+import ReactDOM from 'react-dom';
 import {Chapter, Topic} from '../model/model';
-import {HideableEntryForm} from './HideableEntryForm';
+import {ButtonlessForm} from './ButtonlessForm';
 import {TopicElement} from './TopicElement';
 import React, {RefObject, createRef} from 'react';
+import {computeIfAbsent} from '../lib/utils';
+
+export type ChapterCreationArgs = {
+  topic: Topic;
+  chapterName: string;
+};
 
 export interface ExplorerProps {
   topics: Topic[];
@@ -9,8 +16,9 @@ export interface ExplorerProps {
 
 export interface ExplorerState {
   selectedChapterElement: HTMLLIElement | null;
+  selectedTopicElement: HTMLLIElement | null;
+  selectedTopic: Topic | null;
   isAddingTopic: boolean;
-  isAddingChapter: boolean;
 }
 
 export class ContentExplorer extends React.Component<
@@ -18,13 +26,18 @@ export class ContentExplorer extends React.Component<
   ExplorerState
 > {
   private explorerRef: RefObject<HTMLDivElement>;
+  private createTopicElemRef: RefObject<ButtonlessForm>;
+  private topicElementRefs: Map<string, RefObject<TopicElement>>;
 
   public constructor(props: ExplorerProps) {
     super(props);
     this.explorerRef = createRef();
+    this.createTopicElemRef = createRef();
+    this.topicElementRefs = new Map<string, RefObject<TopicElement>>();
     this.state = {
       selectedChapterElement: null,
-      isAddingChapter: false,
+      selectedTopicElement: null,
+      selectedTopic: null,
       isAddingTopic: false,
     };
   }
@@ -38,8 +51,20 @@ export class ContentExplorer extends React.Component<
       'chapterSelected',
       this.chapterSelected.bind(this)
     );
-    explorer.addEventListener('inputProvided', this.inputFinalised.bind(this));
-    explorer.addEventListener('inputCancelled', this.inputCancelled.bind(this));
+    explorer.addEventListener('topicSelected', this.topicSelected.bind(this));
+
+    const topicInputCmp = this.createTopicElemRef.current;
+    const topicInputElem = ReactDOM.findDOMNode(topicInputCmp) as HTMLElement;
+    if (topicInputElem) {
+      topicInputElem.addEventListener(
+        'inputProvided',
+        this.newTopicRequested.bind(this)
+      );
+      topicInputElem.addEventListener(
+        'inputCancelled',
+        this.topicCreationCancelled.bind(this)
+      );
+    }
   }
 
   componentWillUnmount(): void {
@@ -52,13 +77,21 @@ export class ContentExplorer extends React.Component<
       this.chapterSelected.bind(this)
     );
     explorer.removeEventListener(
-      'inputProvided',
-      this.inputFinalised.bind(this)
+      'topicSelected',
+      this.topicSelected.bind(this)
     );
-    explorer.removeEventListener(
-      'inputCancelled',
-      this.inputCancelled.bind(this)
-    );
+    const topicInputCmp = this.createTopicElemRef.current;
+    const topicInputElem = ReactDOM.findDOMNode(topicInputCmp) as HTMLElement;
+    if (topicInputElem) {
+      topicInputElem.removeEventListener(
+        'inputProvided',
+        this.newTopicRequested.bind(this)
+      );
+      topicInputElem.removeEventListener(
+        'inputCancelled',
+        this.topicCreationCancelled.bind(this)
+      );
+    }
   }
 
   shouldComponentUpdate(
@@ -73,7 +106,6 @@ export class ContentExplorer extends React.Component<
       .reduce((s1, s2) => s1 + '-' + s2, '');
     return (
       currChecksum !== nextChecksum ||
-      nextState.isAddingChapter !== this.state.isAddingChapter ||
       nextState.isAddingTopic !== this.state.isAddingTopic ||
       nextState.selectedChapterElement !== this.state.selectedChapterElement
     );
@@ -81,7 +113,13 @@ export class ContentExplorer extends React.Component<
 
   public render() {
     const topicLiElems = this.props.topics.map(topic => (
-      <TopicElement key={topic.getId()} topic={topic}></TopicElement>
+      <TopicElement
+        key={topic.getId()}
+        topic={topic}
+        ref={computeIfAbsent(this.topicElementRefs, topic.getId(), () =>
+          createRef()
+        )}
+      ></TopicElement>
     ));
     return (
       <div id="explorer" ref={this.explorerRef} className="left-sidebar">
@@ -103,32 +141,35 @@ export class ContentExplorer extends React.Component<
                 new_window
               </a>
             </li>
-            <li
-              style={
-                this.state.isAddingChapter || this.state.isAddingTopic
-                  ? {display: 'inline-block'}
-                  : {display: 'none'}
-              }
-            >
-              <HideableEntryForm />
-            </li>
           </ul>
         </nav>
         <ul id="explorer-items" className="tree">
           {topicLiElems}
+          {this.state.isAddingTopic && (
+            <li>
+              <ButtonlessForm
+                promptText="Enter topic name"
+                ref={this.createTopicElemRef}
+              />
+            </li>
+          )}
         </ul>
       </div>
     );
   }
 
-  private createNewTopic(event: React.MouseEvent): void {
-    this.setState({isAddingChapter: false, isAddingTopic: true});
-    event.stopPropagation();
+  private createNewTopic(): void {
+    this.setState({isAddingTopic: true});
   }
 
-  private createNewChapter(event: React.MouseEvent): void {
-    this.setState({isAddingChapter: true, isAddingTopic: false});
-    event.stopPropagation();
+  private createNewChapter(): void {
+    this.setState({isAddingTopic: false});
+    const selectedTopic = this.state.selectedTopic;
+    if (selectedTopic) {
+      this.topicElementRefs
+        .get(selectedTopic.getId())
+        ?.current?.showNewChapterForm();
+    }
   }
 
   private chapterSelected(e: CustomEvent<Chapter>): void {
@@ -143,27 +184,33 @@ export class ContentExplorer extends React.Component<
     this.setState({selectedChapterElement: selectedElem});
   }
 
-  private inputCancelled(): void {
-    this.setState({isAddingChapter: false, isAddingTopic: false});
+  private topicSelected(e: CustomEvent<Topic>): void {
+    const selectedElem = e.target as HTMLLIElement;
+    if (selectedElem) {
+      selectedElem.classList.add('selected');
+    }
+    const oldSelectedElem = this.state.selectedTopicElement as HTMLLIElement;
+    if (oldSelectedElem) {
+      oldSelectedElem.classList.remove('selected');
+    }
+    this.setState({
+      selectedTopic: e.detail,
+      selectedTopicElement: selectedElem,
+    });
   }
 
-  private inputFinalised(e: CustomEvent<string>): void {
+  private topicCreationCancelled(): void {
+    this.setState({isAddingTopic: false});
+  }
+
+  private newTopicRequested(e: CustomEvent<string>): void {
     const name = e.detail;
-    if (name === null) {
+    if (name === null || name.length === 0) {
       return;
     }
-    if (this.state.isAddingChapter && e.currentTarget) {
-      e.currentTarget.dispatchEvent(
-        new CustomEvent<string>('newChapterRequested', {
-          detail: name,
-          bubbles: true,
-          cancelable: true,
-          composed: false,
-        })
-      );
-      this.setState({isAddingChapter: false});
-    } else if (this.state.isAddingTopic && e.currentTarget) {
-      e.currentTarget.dispatchEvent(
+    const myDom = ReactDOM.findDOMNode(this);
+    if (this.state.isAddingTopic && myDom) {
+      myDom.dispatchEvent(
         new CustomEvent<string>('newTopicRequested', {
           detail: name,
           bubbles: true,
