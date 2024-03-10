@@ -1,4 +1,5 @@
 import {Chapter, Topic} from '../model/model';
+import {ChapterRenameArgs} from '../view/ChapterElement';
 import {ChapterCreationArgs} from '../view/ContentExplorer';
 import {ChapterChangeArgs} from '../view/ContentViewer';
 
@@ -10,6 +11,7 @@ declare global {
     inputProvided: CustomEvent<string>;
     inputCancelled: Event;
     topicSelected: CustomEvent<Topic>;
+    renameChapterRequseted: CustomEvent<ChapterRenameArgs>;
     chapterContentChanged: CustomEvent<ChapterChangeArgs>;
     showChapterRequestedForm: CustomEvent<Topic>;
   }

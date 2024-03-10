@@ -98,15 +98,10 @@ export class ContentExplorer extends React.Component<
     nextProps: Readonly<ExplorerProps>,
     nextState: Readonly<ExplorerState>
   ): boolean {
-    const currChecksum = this.props.topics
-      .map(t => t.checksum())
-      .reduce((s1, s2) => s1 + '-' + s2, '');
-    const nextChecksum = nextProps.topics
-      .map(t => t.checksum())
-      .reduce((s1, s2) => s1 + '-' + s2, '');
     return (
-      currChecksum !== nextChecksum ||
+      nextProps.topics !== this.props.topics ||
       nextState.isAddingTopic !== this.state.isAddingTopic ||
+      nextState.selectedTopicElement !== this.state.selectedTopicElement ||
       nextState.selectedChapterElement !== this.state.selectedChapterElement
     );
   }
@@ -145,14 +140,16 @@ export class ContentExplorer extends React.Component<
         </nav>
         <ul id="explorer-items" className="tree">
           {topicLiElems}
-          {this.state.isAddingTopic && (
-            <li>
-              <ButtonlessForm
-                promptText="Enter topic name"
-                ref={this.createTopicElemRef}
-              />
-            </li>
-          )}
+          <li
+            style={{
+              display: this.state.isAddingTopic ? 'inline-block' : 'none',
+            }}
+          >
+            <ButtonlessForm
+              promptText="Enter topic name"
+              ref={this.createTopicElemRef}
+            />
+          </li>
         </ul>
       </div>
     );
