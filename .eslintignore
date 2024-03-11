@@ -1,1 +1,5 @@
 dist/
+.sl/
+.vscode/
+node_modules/
+.github/
