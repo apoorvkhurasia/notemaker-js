@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@types/node": "^20.8.2",
+    "@types/node": "^20.11.25",
     "@types/showdown": "^2.0.6",
     "@types/wicg-file-system-access": "^2023.10.4",
     "css-loader": "^6.10.0",

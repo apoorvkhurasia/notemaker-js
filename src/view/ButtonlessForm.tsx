@@ -1,4 +1,5 @@
 import React, {RefObject, createRef} from 'react';
+import ReactDOM from 'react-dom';
 
 export interface ButtonlessFormProps {
   promptText: string;
@@ -10,6 +11,20 @@ export class ButtonlessForm extends React.Component<ButtonlessFormProps, {}> {
   public constructor(props: ButtonlessFormProps) {
     super(props);
     this.inputRef = createRef();
+  }
+
+  componentDidMount(): void {
+    const me = ReactDOM.findDOMNode(this) as HTMLElement;
+    if (me) {
+      me.addEventListener('focus', this.focusInput.bind(this));
+    }
+  }
+
+  componentDidUnmount(): void {
+    const me = ReactDOM.findDOMNode(this) as HTMLElement;
+    if (me) {
+      me.removeEventListener('focus', this.focusInput.bind(this));
+    }
   }
 
   public render() {
@@ -42,7 +57,6 @@ export class ButtonlessForm extends React.Component<ButtonlessFormProps, {}> {
       >
         <input
           className="hideable-input"
-          autoFocus={true}
           tabIndex={0}
           placeholder={this.props.promptText}
           onKeyUp={(e: React.KeyboardEvent) => {
@@ -62,5 +76,9 @@ export class ButtonlessForm extends React.Component<ButtonlessFormProps, {}> {
         <input type="reset" style={{display: 'none'}} tabIndex={-1}></input>
       </form>
     );
+  }
+
+  public focusInput(): void {
+    this.inputRef.current?.focus();
   }
 }
