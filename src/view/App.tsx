@@ -157,7 +157,26 @@ export class App
                 Open Store
               </button>
             </li>
-            <li>
+            <li
+              style={{
+                display:
+                  this.state.selectedChapter !== null ? 'inline-block' : 'none',
+              }}
+            >
+              <button
+                className="navBtn"
+                title={this.state.editorVisible ? 'Hide Editor' : 'Show Editor'}
+                onClick={this.toggleEditorVisibility.bind(this)}
+              >
+                {this.state.editorVisible ? 'Hide Editor' : 'Show Editor'}
+              </button>
+            </li>
+            <li
+              style={{
+                display:
+                  this.state.selectedChapter !== null ? 'inline-block' : 'none',
+              }}
+            >
               <button
                 className="navBtn"
                 title={
@@ -166,15 +185,6 @@ export class App
                 onClick={this.togglePreview.bind(this)}
               >
                 {this.state.previewVisible ? 'Hide Preview' : 'Show Preview'}
-              </button>
-            </li>
-            <li>
-              <button
-                className="navBtn"
-                title={this.state.editorVisible ? 'Hide Editor' : 'Show Editor'}
-                onClick={this.toggleEditorVisibility.bind(this)}
-              >
-                {this.state.editorVisible ? 'Hide Editor' : 'Show Editor'}
               </button>
             </li>
           </ul>
