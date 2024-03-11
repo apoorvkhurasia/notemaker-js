@@ -121,20 +121,22 @@ export class ContentExplorer extends React.Component<
         <nav className="topmenu">
           <ul>
             <li>
-              <a
-                className="material-symbols-outlined"
+              <button
+                className={'navBtn material-symbols-outlined'}
                 onClick={this.createNewTopic.bind(this)}
+                title="Add a new topic"
               >
                 create_new_folder
-              </a>
+              </button>
             </li>
             <li>
-              <a
-                className="material-symbols-outlined"
+              <button
+                className={'navBtn material-symbols-outlined'}
                 onClick={this.createNewChapter.bind(this)}
+                title="Add a new chapter under the current topic"
               >
                 new_window
-              </a>
+              </button>
             </li>
           </ul>
         </nav>
@@ -156,7 +158,12 @@ export class ContentExplorer extends React.Component<
   }
 
   private createNewTopic(): void {
-    this.setState({isAddingTopic: true});
+    this.setState(
+      {isAddingTopic: true},
+      (() => {
+        this.createTopicElemRef.current?.focusInput();
+      }).bind(this)
+    );
   }
 
   private createNewChapter(): void {

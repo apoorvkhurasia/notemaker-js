@@ -94,7 +94,6 @@ export class ContentViewer extends React.Component<
           className={this.props.previewVisible ? 'half-editor' : 'full-editor'}
           onChange={this.onMarkdownChange.bind(this)}
           value={this.state.rawMarkdownText}
-          autoFocus={true}
           placeholder={
             'Type in markdown syntax here. LaTeX is not supported yet.'
           }

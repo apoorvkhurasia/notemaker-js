@@ -67,7 +67,6 @@ export class ChapterElement extends React.Component<
             style={
               this.state.editingName ? {display: 'block'} : {display: 'none'}
             }
-            autoFocus={true}
             defaultValue={this.props.chapter.getDisplayName()}
             onChange={e => this.setState({newChapterName: e.target.value})}
           ></input>
