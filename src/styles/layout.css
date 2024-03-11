@@ -17,22 +17,22 @@
 
 .ide-styled-grid > .half-editor {
   grid-column: 2;
-  grid-row: 2/3;
+  grid-row: 2;
 }
 
 .ide-styled-grid > .half-preview {
   grid-column: 3;
-  grid-row: 2/3;
+  grid-row: 2;
 }
 
 .ide-styled-grid > .full-editor {
   grid-column: 2/4;
-  grid-row: 2/3;
+  grid-row: 2;
 }
 
 .ide-styled-grid > .full-preview {
   grid-column: 2/4;
-  grid-row: 2/3;
+  grid-row: 2;
 }
 
 .ide-styled-grid > .footer {
@@ -42,5 +42,5 @@
 
 .ide-styled-grid > .init-message-screen {
   grid-column: 1/4;
-  grid-row: 2/3;
+  grid-row: 2;
 }
