@@ -192,6 +192,25 @@ samp {
   }
 }
 
+button.navBtn {
+  padding: 2px;
+  border: 1px solid #302f2f;
+  background-color: #302f2f;
+  color: whitesmoke;
+  text-decoration: none;
+  border-radius: 2px;
+  vertical-align: middle;
+  text-align: center;
+  height: auto;
+  appearance: none;
+  font-family: 'Open Sans', sans-serif;
+}
+
+button.navBtn:hover {
+  border: 1px solid #5a5858;
+  background-color: #5a5858;
+}
+
 h1,
 h2,
 h3,

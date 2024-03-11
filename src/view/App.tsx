@@ -126,12 +126,17 @@ export class App
         <nav className="topmenu" style={{width: '100%'}}>
           <ul>
             <li>
-              <a
-                className="material-symbols-outlined"
-                onClick={(() => this.setState({askStoreName: true})).bind(this)}
+              <button
+                className="navBtn"
+                title="New Store"
+                onClick={(() => {
+                  this.setState({askStoreName: true}, () => {
+                    this.storeNameInput.current?.focusInput();
+                  });
+                }).bind(this)}
               >
-                create_new_folder
-              </a>
+                New Store
+              </button>
             </li>
             <li
               style={{
@@ -144,28 +149,33 @@ export class App
               />
             </li>
             <li>
-              <a
-                className="material-symbols-outlined"
+              <button
+                className="navBtn"
+                title="Open Store"
                 onClick={this.openStore.bind(this)}
               >
-                folder_open
-              </a>
+                Open Store
+              </button>
             </li>
             <li>
-              <a
-                className="material-symbols-outlined"
+              <button
+                className="navBtn"
+                title={
+                  this.state.previewVisible ? 'Hide Preview' : 'Show Preview'
+                }
                 onClick={this.togglePreview.bind(this)}
               >
-                {this.state.previewVisible ? 'preview_off' : 'preview'}
-              </a>
+                {this.state.previewVisible ? 'Hide Preview' : 'Show Preview'}
+              </button>
             </li>
             <li>
-              <a
-                className="material-symbols-outlined"
+              <button
+                className="navBtn"
+                title={this.state.editorVisible ? 'Hide Editor' : 'Show Editor'}
                 onClick={this.toggleEditorVisibility.bind(this)}
               >
-                {this.state.editorVisible ? 'edit_off' : 'edit'}
-              </a>
+                {this.state.editorVisible ? 'Hide Editor' : 'Show Editor'}
+              </button>
             </li>
           </ul>
         </nav>

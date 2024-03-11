@@ -17,7 +17,7 @@ export class TopicElement extends React.Component<
   TopicProps,
   TopicElementState
 > {
-  private createChapterFormCmp: React.RefObject<HTMLLIElement>;
+  private createChapterFormCmp: React.RefObject<ButtonlessForm>;
 
   public constructor(topicProps: TopicProps) {
     super(topicProps);
@@ -64,20 +64,21 @@ export class TopicElement extends React.Component<
         <ChapterElement key={chp.getId()} chapter={chp}></ChapterElement>
       ));
     return (
-      <li
-        className="topic"
-        onClick={this.selectTopic.bind(this)}
-        ref={this.createChapterFormCmp}
-      >
+      <li className="topic" onClick={this.selectTopic.bind(this)}>
         <details>
           <summary>{this.props.topic.getDisplayName()}</summary>
           <ul>
             {chapterLiElems}
-            {this.state.isAddingChapter && (
-              <li>
-                <ButtonlessForm promptText="Enter chapter name" />
-              </li>
-            )}
+            <li
+              style={{
+                display: this.state.isAddingChapter ? 'inline-block' : 'none',
+              }}
+            >
+              <ButtonlessForm
+                promptText="Enter chapter name"
+                ref={this.createChapterFormCmp}
+              />
+            </li>
           </ul>
         </details>
       </li>
@@ -85,7 +86,10 @@ export class TopicElement extends React.Component<
   }
 
   public showNewChapterForm() {
-    this.setState({isAddingChapter: true});
+    this.setState(
+      {isAddingChapter: true},
+      (() => this.createChapterFormCmp.current?.focusInput()).bind(this)
+    );
   }
 
   private selectTopic(): void {
