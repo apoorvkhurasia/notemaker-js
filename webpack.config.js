@@ -66,8 +66,8 @@ module.exports = {
       publicPath: '/',
       icons: [
         {
-          src: path.resolve('src/img/icon.png'),
-          sizes: [96, 128, 192, 256, 384, 512], // multiple sizes
+          src: path.resolve('src/img/icon.svg'),
+          sizes: [96, 128, 192, 256, 384, 512, 1024], // multiple sizes
         },
       ],
     }),
