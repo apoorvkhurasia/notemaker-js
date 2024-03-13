@@ -16,7 +16,6 @@ export interface ExplorerProps {
 
 export interface ExplorerState {
   selectedChapterElement: HTMLLIElement | null;
-  selectedTopicElement: HTMLLIElement | null;
   selectedTopic: Topic | null;
   isAddingTopic: boolean;
 }
@@ -36,7 +35,6 @@ export class ContentExplorer extends React.Component<
     this.topicElementRefs = new Map<string, RefObject<TopicElement>>();
     this.state = {
       selectedChapterElement: null,
-      selectedTopicElement: null,
       selectedTopic: null,
       isAddingTopic: false,
     };
@@ -101,7 +99,7 @@ export class ContentExplorer extends React.Component<
     return (
       nextProps.topics !== this.props.topics ||
       nextState.isAddingTopic !== this.state.isAddingTopic ||
-      nextState.selectedTopicElement !== this.state.selectedTopicElement ||
+      nextState.selectedTopic !== this.state.selectedTopic ||
       nextState.selectedChapterElement !== this.state.selectedChapterElement
     );
   }
@@ -189,18 +187,15 @@ export class ContentExplorer extends React.Component<
   }
 
   private topicSelected(e: CustomEvent<Topic>): void {
-    const selectedElem = e.target as HTMLLIElement;
-    if (selectedElem) {
-      selectedElem.classList.add('selected');
+    const currentSelectedTopic = this.state.selectedTopic;
+    if (currentSelectedTopic) {
+      const oldSelectedTopicElement = this.topicElementRefs.get(
+        currentSelectedTopic.getId()
+      )?.current;
+      oldSelectedTopicElement?.markSelected(false);
     }
-    const oldSelectedElem = this.state.selectedTopicElement as HTMLLIElement;
-    if (oldSelectedElem) {
-      oldSelectedElem.classList.remove('selected');
-    }
-    this.setState({
-      selectedTopic: e.detail,
-      selectedTopicElement: selectedElem,
-    });
+    this.setState({selectedTopic: e.detail});
+    this.topicElementRefs.get(e.detail.getId())?.current?.markSelected(true);
   }
 
   private topicCreationCancelled(): void {

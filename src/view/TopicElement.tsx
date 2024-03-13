@@ -11,6 +11,7 @@ export interface TopicProps {
 
 export interface TopicElementState {
   isAddingChapter: boolean;
+  isSelected: boolean;
 }
 
 export class TopicElement extends React.Component<
@@ -22,7 +23,7 @@ export class TopicElement extends React.Component<
   public constructor(topicProps: TopicProps) {
     super(topicProps);
     this.createChapterFormCmp = createRef();
-    this.state = {isAddingChapter: false};
+    this.state = {isAddingChapter: false, isSelected: false};
   }
 
   componentDidMount(): void {
@@ -64,9 +65,22 @@ export class TopicElement extends React.Component<
         <ChapterElement key={chp.getId()} chapter={chp}></ChapterElement>
       ));
     return (
-      <li className="topic" onClick={this.selectTopic.bind(this)}>
+      <li
+        className={'topic' + (this.state.isSelected ? ' selected' : '')}
+        onClick={this.selectTopic.bind(this)}
+      >
         <details>
-          <summary>{this.props.topic.getDisplayName()}</summary>
+          <summary>
+            <div className="topic-nav">{this.props.topic.getDisplayName()}</div>
+            {this.state.isSelected && (
+              <button
+                className="explorer-mini-btn material-symbols-outlined"
+                onClick={this.deleteTopicRequested.bind(this)}
+              >
+                delete
+              </button>
+            )}
+          </summary>
           <ul>
             {chapterLiElems}
             <li
@@ -92,10 +106,26 @@ export class TopicElement extends React.Component<
     );
   }
 
+  public markSelected(isSelected: boolean): void {
+    this.setState({isSelected: isSelected});
+  }
+
   private selectTopic(): void {
     const myDOM = ReactDOM.findDOMNode(this);
     myDOM?.dispatchEvent(
       new CustomEvent<Topic>('topicSelected', {
+        detail: this.props.topic,
+        bubbles: true,
+        cancelable: true,
+        composed: false,
+      })
+    );
+  }
+
+  private deleteTopicRequested(): void {
+    const myDOM = ReactDOM.findDOMNode(this);
+    myDOM?.dispatchEvent(
+      new CustomEvent<Topic>('deleteTopicRequested', {
         detail: this.props.topic,
         bubbles: true,
         cancelable: true,

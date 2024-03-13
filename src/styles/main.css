@@ -51,6 +51,38 @@ button.material-symbols-outlined {
     'opsz' 24;
 }
 
+button.explorer-mini-btn {
+  appearance: none;
+  vertical-align: middle;
+  float: right;
+  font-size: 1em;
+  line-height: 0.865em;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  display: inline;
+  color: black;
+  background-color: transparent;
+  text-decoration: none;
+  text-align: center;
+  height: auto;
+  font-family: 'Material Symbols Outlined' !important;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 200,
+    'GRAD' 0,
+    'opsz' 20;
+}
+
+button.explorer-mini-btn:hover {
+  border: 1px solid #696969;
+  background-color: #696969;
+  border-radius: 2px;
+}
+
+.topic-nav {
+  display: inline;
+}
+
 .topmenu {
   background: #302f2f;
   color: #ffffff;
@@ -131,6 +163,7 @@ button.material-symbols-outlined {
   li.topic.selected > details > summary,
   li.topic > details > summary:hover {
     background-color: #ddd;
+    border-color: green;
     font-weight: normal;
     text-decoration: none;
   }
