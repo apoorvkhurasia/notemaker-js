@@ -122,16 +122,26 @@ export class TopicElement extends React.Component<
     );
   }
 
-  private deleteTopicRequested(): void {
-    const myDOM = ReactDOM.findDOMNode(this);
-    myDOM?.dispatchEvent(
-      new CustomEvent<Topic>('deleteTopicRequested', {
-        detail: this.props.topic,
-        bubbles: true,
-        cancelable: true,
-        composed: false,
-      })
-    );
+  private deleteTopicRequested(e: React.MouseEvent): void {
+    if (
+      !confirm(
+        'Are you sure you want to delete topic: ' +
+          this.props.topic.getDisplayName() +
+          '?'
+      )
+    ) {
+      e.preventDefault();
+    } else {
+      const myDOM = ReactDOM.findDOMNode(this);
+      myDOM?.dispatchEvent(
+        new CustomEvent<Topic>('deleteTopicRequested', {
+          detail: this.props.topic,
+          bubbles: true,
+          cancelable: true,
+          composed: false,
+        })
+      );
+    }
   }
 
   private chapterCreationCancelled(): void {

@@ -68,6 +68,10 @@ export class App
       'renameChapterRequseted',
       this.renameChapterRequseted.bind(this)
     );
+    document.addEventListener(
+      'deleteTopicRequested',
+      this.deleteTopicRequested.bind(this)
+    );
     const topicInputElem = ReactDOM.findDOMNode(
       this.storeNameInput.current
     ) as HTMLElement;
@@ -311,6 +315,13 @@ export class App
     }
   }
 
+  private async deleteTopicRequested(e: CustomEvent<Topic>): Promise<void> {
+    const controller = this.state.contentController;
+    if (controller) {
+      await controller.deleteTopic(e.detail);
+    }
+  }
+
   private async createNewChapter(
     e: CustomEvent<ChapterCreationArgs>
   ): Promise<void> {
@@ -334,7 +345,11 @@ export class App
   }
 
   onTopicCreated(topic: Topic): void {
-    this.setState({topics: this.state.topics.concat(topic)});
+    this.setState({
+      topics: this.state.topics.concat(topic),
+      selectedChapter: null,
+      selectedTopic: topic,
+    });
   }
 
   onTopicRenamed(_topic: Topic, _newName: string): void {
@@ -344,11 +359,20 @@ export class App
   onTopicDeleted(topic: Topic): void {
     this.setState({
       topics: this.state.topics.filter(t => t.getId() !== topic.getId()),
+      selectedChapter:
+        this.state.selectedChapter?.getTopic() === topic
+          ? null
+          : this.state.selectedChapter,
+      selectedTopic:
+        this.state.selectedTopic === topic ? null : this.state.selectedTopic,
     });
   }
 
-  onChapterCreated(_chapter: Chapter): void {
-    this.setState({topics: this.state.topics.map(x => x)});
+  onChapterCreated(chapter: Chapter): void {
+    this.setState({
+      topics: this.state.topics.map(x => x),
+      selectedChapter: chapter,
+    });
   }
 
   onChapterMoved(_chapter: Chapter, _newTopic: Topic): void {
@@ -360,7 +384,13 @@ export class App
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
-  onChapterDeleted(_chapter: Chapter): void {
-    this.setState({topics: this.state.topics.map(x => x)});
+  onChapterDeleted(chapter: Chapter): void {
+    this.setState({
+      topics: this.state.topics.map(x => x),
+      selectedChapter:
+        this.state.selectedChapter === chapter
+          ? null
+          : this.state.selectedChapter,
+    });
   }
 }

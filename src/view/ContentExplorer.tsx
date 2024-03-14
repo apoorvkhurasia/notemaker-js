@@ -127,15 +127,17 @@ export class ContentExplorer extends React.Component<
                 create_new_folder
               </button>
             </li>
-            <li>
-              <button
-                className={'navBtn material-symbols-outlined'}
-                onClick={this.createNewChapter.bind(this)}
-                title="Add a new chapter under the current topic"
-              >
-                new_window
-              </button>
-            </li>
+            {this.state.selectedTopic !== null && (
+              <li>
+                <button
+                  className={'navBtn material-symbols-outlined'}
+                  onClick={this.createNewChapter.bind(this)}
+                  title="Add a new chapter under the current topic"
+                >
+                  new_window
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
         <ul id="explorer-items" className="tree">
