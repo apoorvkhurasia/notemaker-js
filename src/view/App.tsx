@@ -235,7 +235,8 @@ export class App
         ) : (
           <div className="init-message-screen">
             <div className="init-message">
-              Create a new store or Open a new store
+              Create a new store or Open a new store to start using the app.{' '}
+              <br />A store is a directory where your notes are stored.
             </div>
           </div>
         )}
