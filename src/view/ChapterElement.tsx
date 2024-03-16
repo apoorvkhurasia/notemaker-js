@@ -71,10 +71,7 @@ export class ChapterElement extends React.Component<
             <input type="reset" style={{display: 'none'}} tabIndex={-1}></input>
           </form>
         ) : (
-          <div
-            className="chapter-nav"
-            // style={{display: this.state.editingName ? 'none' : 'inline'}}
-          >
+          <div className="chapter-nav">
             {this.props.chapter.getDisplayName()}
           </div>
         )}
