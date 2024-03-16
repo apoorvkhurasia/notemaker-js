@@ -7,7 +7,7 @@ declare global {
   interface GlobalEventHandlersEventMap {
     chapterSelected: CustomEvent<Chapter>;
     newTopicRequested: CustomEvent<string>;
-    deleteTopicRequested: CustomEvent<string>;
+    deleteTopicRequested: CustomEvent<Topic>;
     newChapterRequested: CustomEvent<ChapterCreationArgs>;
     inputProvided: CustomEvent<string>;
     inputCancelled: Event;

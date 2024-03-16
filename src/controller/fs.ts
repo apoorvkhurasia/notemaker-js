@@ -111,22 +111,29 @@ export class FileSystemController implements ContentController {
   }
 
   public async deleteChapter(chapter: Chapter): Promise<void> {
-    await this.contentRootHandle.removeEntry(chapter.getId());
-    const topic = chapter.getTopic();
-    if (topic === null) {
-      return;
-    }
-    const metadata = await this.getMetadata();
-    for (const topicShell of metadata.topics) {
-      if (topicShell.id === topic.getId()) {
-        topicShell.chapters = topicShell.chapters.filter(
-          c => c.id === chapter.getId()
-        );
-        break;
+    try {
+      const topic = chapter.getTopic();
+      if (topic === null) {
+        return;
       }
+      const metadata = await this.getMetadata();
+      for (const topicShell of metadata.topics) {
+        if (topicShell.id === topic.getId()) {
+          topicShell.chapters = topicShell.chapters.filter(
+            c => c.id !== chapter.getId()
+          );
+          break;
+        }
+      }
+      this.writeMetadataToFile();
+      await this.contentRootHandle.removeEntry(
+        FileSystemController.getChapterFileName(chapter)
+      );
+      this.observers.forEach(obs => obs.onChapterDeleted(chapter));
+    } catch (err) {
+      console.log('Error deleting chapter');
+      console.log(err);
     }
-    await this.writeMetadataToFile();
-    this.observers.forEach(obs => obs.onChapterDeleted(chapter));
   }
 
   public async renameTopic(topic: Topic, newName: string): Promise<void> {
@@ -276,11 +283,18 @@ export class FileSystemController implements ContentController {
     create: boolean
   ): Promise<FileSystemFileHandle | null> {
     try {
-      return this.contentRootHandle.getFileHandle(chapter.getId() + '.md', {
-        create: create,
-      });
+      return this.contentRootHandle.getFileHandle(
+        FileSystemController.getChapterFileName(chapter),
+        {
+          create: create,
+        }
+      );
     } catch (_err) {
       return null;
     }
+  }
+
+  private static getChapterFileName(chapter: Chapter): string {
+    return chapter.getId() + '.md';
   }
 }
