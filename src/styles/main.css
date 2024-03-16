@@ -208,7 +208,8 @@ button.explorer-mini-btn:active {
 
 .topic-nav,
 .chapter-nav {
-  display: inline;
+  display: inline-flex;
+  max-width: 130px;
 }
 
 .topmenu {
@@ -349,6 +350,7 @@ input.mini-editor:focus {
   position: absolute;
   left: 50%;
   top: 50%;
+  text-align: center;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
