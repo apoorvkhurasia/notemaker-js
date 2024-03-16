@@ -80,6 +80,10 @@ export class App
       'deleteTopicRequested',
       this.onDeleteTopicRequested.bind(this)
     );
+    document.addEventListener(
+      'deleteChapterRequested',
+      this.onDeleteChapterRequested.bind(this)
+    );
     const topicInputElem = ReactDOM.findDOMNode(
       this.storeNameInput.current
     ) as HTMLElement;
@@ -112,6 +116,14 @@ export class App
     document.removeEventListener(
       'newChapterRequested',
       this.onNewChapterRequested.bind(this)
+    );
+    document.removeEventListener(
+      'deleteTopicRequested',
+      this.onDeleteTopicRequested.bind(this)
+    );
+    document.removeEventListener(
+      'deleteChapterRequested',
+      this.onDeleteChapterRequested.bind(this)
     );
     document.removeEventListener(
       'chapterContentChanged',
@@ -328,6 +340,15 @@ export class App
     }
   }
 
+  private async onDeleteChapterRequested(
+    e: CustomEvent<Chapter>
+  ): Promise<void> {
+    const controller = this.state.contentController;
+    if (controller) {
+      await controller.deleteChapter(e.detail);
+    }
+  }
+
   private async onNewChapterRequested(
     e: CustomEvent<ChapterCreationArgs>
   ): Promise<void> {
@@ -384,7 +405,8 @@ export class App
     );
   }
 
-  onTopicRenamed(_topic: Topic, _newName: string): void {
+  onTopicRenamed(topic: Topic, newName: string): void {
+    topic.setDisplayName(newName);
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
@@ -404,7 +426,8 @@ export class App
     );
   }
 
-  onChapterMoved(_chapter: Chapter, _newTopic: Topic): void {
+  onChapterMoved(chapter: Chapter, newTopic: Topic): void {
+    newTopic.addChapter(chapter);
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
@@ -419,7 +442,8 @@ export class App
     }
   }
 
-  onChapterDeleted(_: Chapter): void {
+  onChapterDeleted(chapter: Chapter): void {
+    chapter.getTopic()?.removeChapter(chapter);
     this.setState(
       {topics: this.state.topics.map(x => x)},
       (async () => await this.selectChapter(null)).bind(this)

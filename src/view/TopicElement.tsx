@@ -144,9 +144,9 @@ export class TopicElement extends React.Component<
   private deleteTopicRequested(e: React.MouseEvent): void {
     if (
       !confirm(
-        'Are you sure you want to delete topic: ' +
+        'Are you sure you want to delete topic "' +
           this.props.topic.getDisplayName() +
-          '?'
+          '"?'
       )
     ) {
       e.preventDefault();
