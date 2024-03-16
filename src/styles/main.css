@@ -1,8 +1,114 @@
+@property --bg-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #fdf6e3;
+}
+@property --inverted-bg-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #002b36;
+}
+@property --inverted-fg-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #fdf6e3;
+}
+@property --code-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #002b36;
+}
+@property --code-bg-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #eee8d5;
+}
+@property --primary-text-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: black;
+}
+@property --navbutton-text-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: whitesmoke;
+}
+@property --navbutton-bg-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --navbutton-hover-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #839496;
+}
+@property --navbutton-depression-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #586e75;
+}
+@property --explorerbutton-text-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #002b36;
+}
+@property --explorerbutton-bg-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@property --explorerbutton-hover-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #839496;
+}
+@property --explorerbutton-depression-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #586e75;
+}
+@property --highlight-bg-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #93a1a1;
+}
+@property --input-bg-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #eee8d5;
+}
+@property --active-item-border-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #859900;
+}
+@property --active-parent-border-color {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #2aa198;
+}
+@property --blue-accent {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #268bd2;
+}
+@property --red-accent {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #dc322f;
+}
+@property --magenta-accent {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #d33682;
+}
+
 html,
 body {
   font-family: 'Open Sans', sans-serif;
-  background-color: #fdf6e3;
-  color: black;
+  background-color: var(--bg-color);
+  color: var(--primary-text-color);
   width: 100vw;
   height: 100vh;
   margin: 0;
@@ -22,14 +128,15 @@ tt,
 kbd,
 samp {
   font-family: 'JetBrains Mono', monospace;
-  color: #002b36;
+  color: var(--code-color);
+  background-color: var(--code-bg-color);
 }
 
 button.navBtn {
   padding: 2px;
   border: 1px solid transparent;
-  background-color: transparent;
-  color: whitesmoke;
+  background-color: var(--navbutton-bg-color);
+  color: var(--navbutton-text-color);
   text-decoration: none;
   border-radius: 2px;
   vertical-align: middle;
@@ -40,14 +147,14 @@ button.navBtn {
 }
 
 button.navBtn:hover {
-  border: 1px solid #93a1a1;
-  background-color: #93a1a1;
+  border: 1px solid var(--navbutton-hover-color);
+  background-color: var(--navbutton-hover-color);
 }
 
 button.navBtn:active {
-  border: 1px solid #93a1a1;
-  background-color: #839496;
-  box-shadow: #839496;
+  border: 1px solid var(--navbutton-hover-color);
+  background-color: var(--navbutton-depression-color);
+  box-shadow: var(--navbutton-depression-color);
 }
 
 button.material-symbols-outlined {
@@ -68,8 +175,8 @@ button.explorer-mini-btn {
   border: 1px solid transparent;
   border-radius: 2px;
   display: inline;
-  color: #002b36;
-  background-color: transparent;
+  color: var(--explorerbutton-text-color);
+  background-color: var(--explorerbutton-bg-color);
   text-decoration: none;
   text-align: center;
   height: auto;
@@ -82,14 +189,14 @@ button.explorer-mini-btn {
 }
 
 button.explorer-mini-btn:hover {
-  border: 1px solid #93a1a1;
-  background-color: #93a1a1;
+  border: 1px solid var(--explorerbutton-hover-color);
+  background-color: var(--explorerbutton-hover-color);
 }
 
 button.explorer-mini-btn:active {
-  border: 1px solid #93a1a1;
-  background-color: #839496;
-  box-shadow: #839496;
+  border: 1px solid var(--explorerbutton-hover-color);
+  background-color: var(--explorerbutton-depression-color);
+  box-shadow: var(--explorerbutton-depression-color);
 }
 
 .topic-nav,
@@ -98,8 +205,8 @@ button.explorer-mini-btn:active {
 }
 
 .topmenu {
-  background: #002b36;
-  color: #fdf6e3;
+  background: var(--inverted-bg-color);
+  color: var(--inverted-fg-color);
   height: auto;
   margin: 0;
   padding: 0;
@@ -122,9 +229,24 @@ button.explorer-mini-btn:active {
   display: block;
 }
 
+input.mini-editor {
+  box-shadow: none;
+  background-color: var(--highlight-bg-color);
+  border: none;
+  width: 100%;
+  font-family: 'Open Sans', sans-serif;
+  display: block;
+  outline: none;
+}
+
+input.mini-editor:focus {
+  outline: none;
+  background-color: var(--input-bg-color);
+}
+
 #explorer {
   border: none;
-  border-right: 1px solid rgb(37, 37, 37);
+  border-right: 1px solid var(--inverted-bg-color);
   margin: 0;
   padding: 0;
   width: 170px;
@@ -146,7 +268,7 @@ button.explorer-mini-btn:active {
     margin: 0;
   }
   li.chapter {
-    border-left: 2px solid #ddd;
+    border-left: 2px solid var(--highlight-bg-color);
     padding-left: 10px;
     cursor: pointer;
   }
@@ -157,37 +279,20 @@ button.explorer-mini-btn:active {
     width: 100%;
     white-space: nowrap;
   }
-  input.mini-editor {
-    box-shadow: none;
-    background-color: #ddd;
-    border: none;
-    width: 100%;
-    font-family: 'Open Sans', sans-serif;
-    display: block;
-    outline: none;
-  }
-  input.mini-editor:focus {
-    outline: none;
-    background-color: rgb(250, 250, 255);
-  }
-  li.chapter.selected {
-    background-color: #ddd;
-    border-color: green;
-  }
+  li.chapter.selected,
   li.chapter:active,
   li.chapter:focus {
-    background-color: #b58900;
+    background-color: var(--highlight-bg-color);
+    border-color: var(--active-item-border-color);
   }
   li.topic > details > summary {
     border: 1px solid transparent;
   }
   li.topic.selected > details > summary,
   li.topic.selected > details > summary:active,
-  li.topic.selected > details > summary:focus {
-    border-color: darkseagreen;
-  }
+  li.topic.selected > details > summary:focus,
   li.topic > details > summary:hover {
-    border-color: rgb(203, 203, 0);
+    border-color: var(--active-parent-border-color);
   }
   a,
   a:hover,
@@ -199,21 +304,6 @@ button.explorer-mini-btn:active {
   #explorer-items {
     padding-left: 6px;
   }
-}
-
-.hideable-input {
-  box-shadow: none;
-  background-color: #ddd;
-  border: none;
-  width: 100%;
-  font-family: 'Open Sans', sans-serif;
-  display: block;
-  outline: none;
-}
-
-.hideable-input:focus {
-  outline: none;
-  background-color: rgb(250, 250, 255);
 }
 
 #preview {
@@ -228,9 +318,9 @@ button.explorer-mini-btn:active {
   box-shadow: none;
   resize: none;
   border: none;
-  background-color: #fdf6e3;
+  background-color: var(--bg-color);
   cursor: auto;
-  color: #586e75;
+  color: var(--code-color);
   border-right: 1px solid rgb(37, 37, 37);
   font-family: 'JetBrains Mono', monospace;
   font-size: 1em;
@@ -243,8 +333,8 @@ button.explorer-mini-btn:active {
 }
 
 .init-message-screen {
-  background-color: #002b36;
-  color: #fdf6e3;
+  background-color: var(--inverted-bg-color);
+  color: var(--inverted-fg-color);
 }
 
 .init-message {
@@ -257,8 +347,8 @@ button.explorer-mini-btn:active {
 
 .footer {
   font-size: 0.8em;
-  background: #002b36;
-  color: #fdf6e3;
+  background-color: var(--inverted-bg-color);
+  color: var(--inverted-fg-color);
   height: auto;
   margin: 0;
   padding: 0;
@@ -287,11 +377,11 @@ a {
 }
 
 a:link {
-  color: #268bd2;
+  color: var(--blue-accent);
 }
 
 a:visited {
-  color: #d33682;
+  color: var(--red-accent);
 }
 
 a:hover {
