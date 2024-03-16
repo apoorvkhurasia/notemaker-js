@@ -3,15 +3,15 @@
   inherits: false;
   initial-value: #fdf6e3;
 }
-@property --inverted-bg-color {
+@property --nav-bg-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #002b36;
+  initial-value: #eee8d5;
 }
-@property --inverted-fg-color {
+@property --nav-fg-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #fdf6e3;
+  initial-value: #839496;
 }
 @property --code-color {
   syntax: '<color>';
@@ -21,7 +21,7 @@
 @property --code-bg-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #eee8d5;
+  initial-value: rgb(225, 220, 202);
 }
 @property --primary-text-color {
   syntax: '<color>';
@@ -31,7 +31,7 @@
 @property --navbutton-text-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: whitesmoke;
+  initial-value: #657b83;
 }
 @property --navbutton-bg-color {
   syntax: '<color>';
@@ -41,12 +41,12 @@
 @property --navbutton-hover-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #839496;
+  initial-value: #cfc9b9;
 }
 @property --navbutton-depression-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #586e75;
+  initial-value: #b5b0a2;
 }
 @property --explorerbutton-text-color {
   syntax: '<color>';
@@ -61,22 +61,22 @@
 @property --explorerbutton-hover-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #839496;
+  initial-value: #cfc9b9;
 }
 @property --explorerbutton-depression-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #586e75;
+  initial-value: #b5b0a2;
 }
 @property --highlight-bg-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #93a1a1;
+  initial-value: #eee8d5;
 }
 @property --input-bg-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #eee8d5;
+  initial-value: #fff5d5;
 }
 @property --active-item-border-color {
   syntax: '<color>';
@@ -86,7 +86,7 @@
 @property --active-parent-border-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: #2aa198;
+  initial-value: #839496;
 }
 @property --blue-accent {
   syntax: '<color>';
@@ -102,6 +102,10 @@
   syntax: '<color>';
   inherits: false;
   initial-value: #d33682;
+}
+
+::selection {
+  background-color: var(--highlight-bg-color);
 }
 
 html,
@@ -135,10 +139,10 @@ samp {
 button.navBtn {
   padding: 2px;
   border: 1px solid transparent;
+  border-radius: 3px;
   background-color: var(--navbutton-bg-color);
   color: var(--navbutton-text-color);
   text-decoration: none;
-  border-radius: 2px;
   vertical-align: middle;
   text-align: center;
   height: auto;
@@ -173,7 +177,7 @@ button.explorer-mini-btn {
   font-size: 1em;
   line-height: 0.865em;
   border: 1px solid transparent;
-  border-radius: 2px;
+  border-radius: 3px;
   display: inline;
   color: var(--explorerbutton-text-color);
   background-color: var(--explorerbutton-bg-color);
@@ -205,8 +209,8 @@ button.explorer-mini-btn:active {
 }
 
 .topmenu {
-  background: var(--inverted-bg-color);
-  color: var(--inverted-fg-color);
+  background: var(--nav-bg-color);
+  color: var(--nav-fg-color);
   height: auto;
   margin: 0;
   padding: 0;
@@ -237,16 +241,17 @@ input.mini-editor {
   font-family: 'Open Sans', sans-serif;
   display: block;
   outline: none;
+  margin: 0;
+  padding: 0;
 }
 
 input.mini-editor:focus {
-  outline: none;
   background-color: var(--input-bg-color);
 }
 
 #explorer {
   border: none;
-  border-right: 1px solid var(--inverted-bg-color);
+  border-right: 1px solid var(--nav-bg-color);
   margin: 0;
   padding: 0;
   width: 170px;
@@ -321,7 +326,7 @@ input.mini-editor:focus {
   background-color: var(--bg-color);
   cursor: auto;
   color: var(--code-color);
-  border-right: 1px solid rgb(37, 37, 37);
+  border-right: 1px solid var(--nav-bg-color);
   font-family: 'JetBrains Mono', monospace;
   font-size: 1em;
   margin: 0;
@@ -333,8 +338,8 @@ input.mini-editor:focus {
 }
 
 .init-message-screen {
-  background-color: var(--inverted-bg-color);
-  color: var(--inverted-fg-color);
+  background-color: var(--nav-bg-color);
+  color: var(--nav-fg-color);
 }
 
 .init-message {
@@ -347,8 +352,8 @@ input.mini-editor:focus {
 
 .footer {
   font-size: 0.8em;
-  background-color: var(--inverted-bg-color);
-  color: var(--inverted-fg-color);
+  background-color: var(--nav-bg-color);
+  color: var(--nav-fg-color);
   height: auto;
   margin: 0;
   padding: 0;

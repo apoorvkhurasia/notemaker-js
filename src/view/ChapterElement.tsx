@@ -42,7 +42,7 @@ export class ChapterElement extends React.Component<
       >
         {this.state.editingName ? (
           <form
-            // style={{display: this.state.editingName ? 'inline' : 'none'}}
+            style={{display: 'inline'}}
             onSubmit={e => {
               e.preventDefault();
               this.renameChapter(this.state.newChapterName);
