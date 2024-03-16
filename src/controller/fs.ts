@@ -237,11 +237,8 @@ export class FileSystemController implements ContentController {
     const chapterHandle = await this.getChapterFileHandle(chapter, create);
     if (chapterHandle !== null) {
       const chapterWritable = await chapterHandle.createWritable();
-      try {
-        await chapterWritable.write(text);
-      } finally {
-        await chapterWritable.close();
-      }
+      await chapterWritable.write(text);
+      await chapterWritable.close();
     }
   }
 
@@ -273,11 +270,8 @@ export class FileSystemController implements ContentController {
       }
     );
     const metadataWritable = await metadataFileHandle.createWritable();
-    try {
-      await metadataWritable.write(JSON.stringify(metadata));
-    } finally {
-      await metadataWritable.close();
-    }
+    await metadataWritable.write(JSON.stringify(metadata));
+    await metadataWritable.close();
   }
 
   private async getChapterFileHandle(

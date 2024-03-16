@@ -1,7 +1,8 @@
 html,
 body {
   font-family: 'Open Sans', sans-serif;
-  background-color: #ffffff;
+  background-color: #fdf6e3;
+  color: black;
   width: 100vw;
   height: 100vh;
   margin: 0;
@@ -21,12 +22,13 @@ tt,
 kbd,
 samp {
   font-family: 'JetBrains Mono', monospace;
+  color: #002b36;
 }
 
 button.navBtn {
   padding: 2px;
-  border: 1px solid #302f2f;
-  background-color: #302f2f;
+  border: 1px solid transparent;
+  background-color: transparent;
   color: whitesmoke;
   text-decoration: none;
   border-radius: 2px;
@@ -38,8 +40,14 @@ button.navBtn {
 }
 
 button.navBtn:hover {
-  border: 1px solid #5a5858;
-  background-color: #5a5858;
+  border: 1px solid #93a1a1;
+  background-color: #93a1a1;
+}
+
+button.navBtn:active {
+  border: 1px solid #93a1a1;
+  background-color: #839496;
+  box-shadow: #839496;
 }
 
 button.material-symbols-outlined {
@@ -60,7 +68,7 @@ button.explorer-mini-btn {
   border: 1px solid transparent;
   border-radius: 2px;
   display: inline;
-  color: black;
+  color: #002b36;
   background-color: transparent;
   text-decoration: none;
   text-align: center;
@@ -74,18 +82,24 @@ button.explorer-mini-btn {
 }
 
 button.explorer-mini-btn:hover {
-  border: 1px solid #696969;
-  background-color: #696969;
-  border-radius: 2px;
+  border: 1px solid #93a1a1;
+  background-color: #93a1a1;
 }
 
-.topic-nav {
+button.explorer-mini-btn:active {
+  border: 1px solid #93a1a1;
+  background-color: #839496;
+  box-shadow: #839496;
+}
+
+.topic-nav,
+.chapter-nav {
   display: inline;
 }
 
 .topmenu {
-  background: #302f2f;
-  color: #ffffff;
+  background: #002b36;
+  color: #fdf6e3;
   height: auto;
   margin: 0;
   padding: 0;
@@ -93,7 +107,6 @@ button.explorer-mini-btn:hover {
 
 .topmenu li {
   display: inline-block;
-  cursor: pointer;
   margin: 0.15rem;
   vertical-align: middle;
 }
@@ -130,11 +143,12 @@ button.explorer-mini-btn:hover {
     list-style: none;
     padding-inline-start: 3px;
     padding: 0;
-    margin: 2px;
+    margin: 0;
   }
   li.chapter {
     border-left: 2px solid #ddd;
     padding-left: 10px;
+    cursor: pointer;
   }
   li > a {
     display: block;
@@ -156,21 +170,34 @@ button.explorer-mini-btn:hover {
     outline: none;
     background-color: rgb(250, 250, 255);
   }
-  li.chapter:active,
-  li.chapter:focus,
-  li.chapter.selected,
-  li.topic.selected > details > summary,
-  li.topic > details > summary:hover {
+  li.chapter.selected {
     background-color: #ddd;
     border-color: green;
+  }
+  li.chapter:active,
+  li.chapter:focus {
+    background-color: #b58900;
+  }
+  li.topic > details > summary {
+    border: 1px solid transparent;
+  }
+  li.topic.selected > details > summary,
+  li.topic.selected > details > summary:active,
+  li.topic.selected > details > summary:focus {
+    border-color: darkseagreen;
+  }
+  li.topic > details > summary:hover {
+    border-color: rgb(203, 203, 0);
+  }
+  a,
+  a:hover,
+  a:active,
+  a:link {
     font-weight: normal;
     text-decoration: none;
   }
-  li.chapter:hover {
-    border-color: rgb(203, 203, 0);
-  }
-  a:hover {
-    font-weight: normal;
+  #explorer-items {
+    padding-left: 6px;
   }
 }
 
@@ -201,6 +228,9 @@ button.explorer-mini-btn:hover {
   box-shadow: none;
   resize: none;
   border: none;
+  background-color: #fdf6e3;
+  cursor: auto;
+  color: #586e75;
   border-right: 1px solid rgb(37, 37, 37);
   font-family: 'JetBrains Mono', monospace;
   font-size: 1em;
@@ -213,8 +243,8 @@ button.explorer-mini-btn:hover {
 }
 
 .init-message-screen {
-  background-color: #302f2f;
-  color: #ddd;
+  background-color: #002b36;
+  color: #fdf6e3;
 }
 
 .init-message {
@@ -227,8 +257,8 @@ button.explorer-mini-btn:hover {
 
 .footer {
   font-size: 0.8em;
-  background: #302f2f;
-  color: #ffffff;
+  background: #002b36;
+  color: #fdf6e3;
   height: auto;
   margin: 0;
   padding: 0;
@@ -242,33 +272,40 @@ button.explorer-mini-btn:hover {
 h1,
 h2,
 h3,
-h4 {
+h4,
+h5,
+h6 {
   font-family: 'Oswald', serif;
   font-optical-sizing: auto;
-  color: dodgerblue;
   margin-top: 0.5em;
   margin-bottom: 0.15em;
 }
 
-a,
-a:link,
-a:active,
-a:visited {
-  color: dodgerblue;
+a {
   cursor: pointer;
-  cursor: hand;
+  text-decoration: none;
+}
+
+a:link {
+  color: #268bd2;
+}
+
+a:visited {
+  color: #d33682;
 }
 
 a:hover {
-  font-weight: bold;
-  text-decoration: none;
-  cursor: hand;
+  text-decoration: underline;
+}
+
+a:active {
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
-  cursor: hand;
 }
 
 ::-webkit-scrollbar-track {
