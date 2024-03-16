@@ -60,7 +60,7 @@ export class ButtonlessForm extends React.Component<ButtonlessFormProps, {}> {
         }}
       >
         <input
-          className="hideable-input"
+          className="mini-editor"
           tabIndex={0}
           placeholder={this.props.promptText}
           onKeyUp={(e: React.KeyboardEvent) => {
