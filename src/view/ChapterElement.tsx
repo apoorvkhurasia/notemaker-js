@@ -8,7 +8,7 @@ export interface ChapterProps {
 export interface ChapterState {
   editingName: boolean;
   newChapterName: string;
-  chapter: Chapter;
+  isSelected: boolean;
 }
 
 export type ChapterRenameArgs = {
@@ -28,7 +28,7 @@ export class ChapterElement extends React.Component<
     this.liRef = createRef();
     this.editorRef = createRef();
     this.state = {
-      chapter: chapterProps.chapter,
+      isSelected: false,
       editingName: false,
       newChapterName: chapterProps.chapter.getDisplayName(),
     };
@@ -36,7 +36,10 @@ export class ChapterElement extends React.Component<
 
   public render() {
     return (
-      <li ref={this.liRef} className="chapter">
+      <li
+        ref={this.liRef}
+        className={'chapter' + (this.state.isSelected ? ' selected' : '')}
+      >
         <a
           onClick={this.loadChapter.bind(this)}
           onDoubleClick={this.showEditor.bind(this)}
@@ -44,7 +47,7 @@ export class ChapterElement extends React.Component<
             this.state.editingName ? {display: 'none'} : {display: 'block'}
           }
         >
-          {this.state.chapter.getDisplayName()}
+          {this.props.chapter.getDisplayName()}
         </a>
         <form
           onSubmit={e => {
@@ -77,6 +80,13 @@ export class ChapterElement extends React.Component<
     );
   }
 
+  public markSelected(isSelected: boolean) {
+    this.setState({isSelected: isSelected});
+    if (!isSelected) {
+      this.setState({editingName: false});
+    }
+  }
+
   private showEditor(e: React.MouseEvent) {
     this.loadChapter();
     this.setState({editingName: true});
@@ -89,7 +99,7 @@ export class ChapterElement extends React.Component<
   }
 
   private hideEditor() {
-    this.setState({editingName: false});
+    this.setState({editingName: false, newChapterName: ''});
   }
 
   private processKeyboardInput(e: React.KeyboardEvent): void {
@@ -102,7 +112,7 @@ export class ChapterElement extends React.Component<
     const liElem = this.liRef.current as HTMLLIElement;
     if (liElem) {
       liElem.dispatchEvent(
-        new CustomEvent<Chapter>('chapterSelected', {
+        new CustomEvent<Chapter>('selectChapterRequested', {
           detail: this.props.chapter,
           bubbles: true,
           cancelable: false,

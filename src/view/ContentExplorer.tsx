@@ -15,7 +15,7 @@ export interface ExplorerProps {
 }
 
 export interface ExplorerState {
-  selectedChapterElement: HTMLLIElement | null;
+  selectedChapter: Chapter | null;
   selectedTopic: Topic | null;
   isAddingTopic: boolean;
 }
@@ -24,33 +24,21 @@ export class ContentExplorer extends React.Component<
   ExplorerProps,
   ExplorerState
 > {
-  private explorerRef: RefObject<HTMLDivElement>;
   private createTopicElemRef: RefObject<ButtonlessForm>;
   private topicElementRefs: Map<string, RefObject<TopicElement>>;
 
   public constructor(props: ExplorerProps) {
     super(props);
-    this.explorerRef = createRef();
     this.createTopicElemRef = createRef();
     this.topicElementRefs = new Map<string, RefObject<TopicElement>>();
     this.state = {
-      selectedChapterElement: null,
+      selectedChapter: null,
       selectedTopic: null,
       isAddingTopic: false,
     };
   }
 
   componentDidMount(): void {
-    const explorer = this.explorerRef.current as HTMLDivElement;
-    if (explorer === null) {
-      return;
-    }
-    explorer.addEventListener(
-      'chapterSelected',
-      this.chapterSelected.bind(this)
-    );
-    explorer.addEventListener('topicSelected', this.topicSelected.bind(this));
-
     const topicInputCmp = this.createTopicElemRef.current;
     const topicInputElem = ReactDOM.findDOMNode(topicInputCmp) as HTMLElement;
     if (topicInputElem) {
@@ -66,18 +54,6 @@ export class ContentExplorer extends React.Component<
   }
 
   componentWillUnmount(): void {
-    const explorer = this.explorerRef.current as HTMLDivElement;
-    if (explorer === null) {
-      return;
-    }
-    explorer.removeEventListener(
-      'chapterSelected',
-      this.chapterSelected.bind(this)
-    );
-    explorer.removeEventListener(
-      'topicSelected',
-      this.topicSelected.bind(this)
-    );
     const topicInputCmp = this.createTopicElemRef.current;
     const topicInputElem = ReactDOM.findDOMNode(topicInputCmp) as HTMLElement;
     if (topicInputElem) {
@@ -100,7 +76,7 @@ export class ContentExplorer extends React.Component<
       nextProps.topics !== this.props.topics ||
       nextState.isAddingTopic !== this.state.isAddingTopic ||
       nextState.selectedTopic !== this.state.selectedTopic ||
-      nextState.selectedChapterElement !== this.state.selectedChapterElement
+      nextState.selectedChapter !== this.state.selectedChapter
     );
   }
 
@@ -115,7 +91,7 @@ export class ContentExplorer extends React.Component<
       ></TopicElement>
     ));
     return (
-      <div id="explorer" ref={this.explorerRef} className="left-sidebar">
+      <div id="explorer" className="left-sidebar">
         <nav className="topmenu">
           <ul>
             <li>
@@ -157,12 +133,64 @@ export class ContentExplorer extends React.Component<
     );
   }
 
+  public markTopicSelected(topic: Topic | null): void {
+    const currentSelectedTopic = this.state.selectedTopic;
+    if (currentSelectedTopic === topic) {
+      return;
+    }
+    if (currentSelectedTopic) {
+      const oldSelectedTopicElement = this.topicElementRefs.get(
+        currentSelectedTopic.getId()
+      )?.current;
+      oldSelectedTopicElement?.markSelected(false);
+    }
+    this.setState(
+      {selectedTopic: topic},
+      (() => {
+        const selectedTopic = this.state.selectedTopic;
+        if (selectedTopic !== null) {
+          this.topicElementRefs
+            .get(selectedTopic.getId())
+            ?.current?.markSelected(true);
+        }
+      }).bind(this)
+    );
+  }
+
+  public markChapterSelected(chapter: Chapter | null): void {
+    const currentSelectedChapter = this.state.selectedChapter;
+    if (currentSelectedChapter === chapter) {
+      return;
+    }
+    if (currentSelectedChapter) {
+      const topicOfCurrentSelectedChapter = currentSelectedChapter.getTopic();
+      if (topicOfCurrentSelectedChapter !== null) {
+        this.topicElementRefs
+          .get(topicOfCurrentSelectedChapter.getId())
+          ?.current?.markChapterSelected(currentSelectedChapter, false);
+      }
+    }
+    this.setState(
+      {
+        selectedChapter: chapter,
+        selectedTopic: chapter?.getTopic() || null,
+      },
+      (() => {
+        const chapter = this.state.selectedChapter;
+        const topic = this.state.selectedTopic;
+        if (chapter !== null && topic !== null) {
+          this.topicElementRefs
+            .get(topic.getId())
+            ?.current?.markChapterSelected(chapter, true);
+        }
+      }).bind(this)
+    );
+  }
+
   private createNewTopic(): void {
     this.setState(
       {isAddingTopic: true},
-      (() => {
-        this.createTopicElemRef.current?.focusInput();
-      }).bind(this)
+      (() => this.createTopicElemRef.current?.focusInput()).bind(this)
     );
   }
 
@@ -174,30 +202,6 @@ export class ContentExplorer extends React.Component<
         .get(selectedTopic.getId())
         ?.current?.showNewChapterForm();
     }
-  }
-
-  private chapterSelected(e: CustomEvent<Chapter>): void {
-    const selectedElem = e.target as HTMLLIElement;
-    if (selectedElem) {
-      selectedElem.classList.add('selected');
-    }
-    const oldSelectedElem = this.state.selectedChapterElement as HTMLLIElement;
-    if (oldSelectedElem) {
-      oldSelectedElem.classList.remove('selected');
-    }
-    this.setState({selectedChapterElement: selectedElem});
-  }
-
-  private topicSelected(e: CustomEvent<Topic>): void {
-    const currentSelectedTopic = this.state.selectedTopic;
-    if (currentSelectedTopic) {
-      const oldSelectedTopicElement = this.topicElementRefs.get(
-        currentSelectedTopic.getId()
-      )?.current;
-      oldSelectedTopicElement?.markSelected(false);
-    }
-    this.setState({selectedTopic: e.detail});
-    this.topicElementRefs.get(e.detail.getId())?.current?.markSelected(true);
   }
 
   private topicCreationCancelled(): void {

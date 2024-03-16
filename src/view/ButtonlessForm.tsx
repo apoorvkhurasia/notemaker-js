@@ -32,16 +32,20 @@ export class ButtonlessForm extends React.Component<ButtonlessFormProps, {}> {
       <form
         onSubmit={e => {
           e.preventDefault(); //To prevent reload
-          const name = this.inputRef.current?.value;
-          if (name && name.trim().length > 0) {
-            e.currentTarget.dispatchEvent(
-              new CustomEvent<string>('inputProvided', {
-                detail: name,
-                bubbles: true,
-                cancelable: true,
-                composed: false,
-              })
-            );
+          const inputElem = this.inputRef.current;
+          if (inputElem) {
+            const name = inputElem.value;
+            if (name && name.trim().length > 0) {
+              e.currentTarget.dispatchEvent(
+                new CustomEvent<string>('inputProvided', {
+                  detail: name,
+                  bubbles: true,
+                  cancelable: true,
+                  composed: false,
+                })
+              );
+            }
+            inputElem.value = '';
           }
         }}
         onAbort={e => {

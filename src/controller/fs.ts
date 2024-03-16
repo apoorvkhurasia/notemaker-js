@@ -224,7 +224,9 @@ export class FileSystemController implements ContentController {
   }
 
   public async saveChapter(chapter: Chapter, text: string): Promise<void> {
+    const saveTs = new Date();
     this.createOrUpdateChapter(chapter, text, false);
+    this.observers.forEach(obs => obs.onChapterSaved(chapter, saveTs));
   }
 
   private async createOrUpdateChapter(

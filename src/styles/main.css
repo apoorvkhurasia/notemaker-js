@@ -156,7 +156,6 @@ button.explorer-mini-btn:hover {
     outline: none;
     background-color: rgb(250, 250, 255);
   }
-  li.chapter:hover,
   li.chapter:active,
   li.chapter:focus,
   li.chapter.selected,
@@ -166,6 +165,9 @@ button.explorer-mini-btn:hover {
     border-color: green;
     font-weight: normal;
     text-decoration: none;
+  }
+  li.chapter:hover {
+    border-color: rgb(203, 203, 0);
   }
   a:hover {
     font-weight: normal;

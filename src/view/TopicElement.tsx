@@ -1,9 +1,10 @@
-import React, {createRef} from 'react';
-import {Topic} from '../model/model';
+import React, {RefObject, createRef} from 'react';
+import {Chapter, Topic} from '../model/model';
 import {ChapterElement} from './ChapterElement';
 import {ButtonlessForm} from './ButtonlessForm';
 import ReactDOM from 'react-dom';
 import {ChapterCreationArgs} from './ContentExplorer';
+import {computeIfAbsent} from '../lib/utils';
 
 export interface TopicProps {
   topic: Topic;
@@ -18,11 +19,13 @@ export class TopicElement extends React.Component<
   TopicProps,
   TopicElementState
 > {
-  private createChapterFormCmp: React.RefObject<ButtonlessForm>;
+  private createChapterFormCmp: RefObject<ButtonlessForm>;
+  private chapterElemRefs: Map<string, RefObject<ChapterElement>>;
 
   public constructor(topicProps: TopicProps) {
     super(topicProps);
     this.createChapterFormCmp = createRef();
+    this.chapterElemRefs = new Map<string, RefObject<ChapterElement>>();
     this.state = {isAddingChapter: false, isSelected: false};
   }
 
@@ -62,14 +65,20 @@ export class TopicElement extends React.Component<
     const chapterLiElems = this.props.topic
       .getChapters()
       .map(chp => (
-        <ChapterElement key={chp.getId()} chapter={chp}></ChapterElement>
+        <ChapterElement
+          key={chp.getId()}
+          chapter={chp}
+          ref={computeIfAbsent(this.chapterElemRefs, chp.getId(), () =>
+            createRef()
+          )}
+        ></ChapterElement>
       ));
     return (
       <li
         className={'topic' + (this.state.isSelected ? ' selected' : '')}
-        onClick={this.selectTopic.bind(this)}
+        onClick={this.selectTopicRequested.bind(this)}
       >
-        <details>
+        <details open style={{cursor: 'default'}}>
           <summary>
             <div className="topic-nav">{this.props.topic.getDisplayName()}</div>
             {this.state.isSelected && (
@@ -108,12 +117,22 @@ export class TopicElement extends React.Component<
 
   public markSelected(isSelected: boolean): void {
     this.setState({isSelected: isSelected});
+    if (!isSelected) {
+      this.setState({isAddingChapter: false});
+    }
   }
 
-  private selectTopic(): void {
+  public markChapterSelected(chapter: Chapter, isSelected: boolean): void {
+    this.chapterElemRefs
+      .get(chapter.getId())
+      ?.current?.markSelected(isSelected);
+    this.markSelected(isSelected); //Also set topic selection state
+  }
+
+  private selectTopicRequested(): void {
     const myDOM = ReactDOM.findDOMNode(this);
     myDOM?.dispatchEvent(
-      new CustomEvent<Topic>('topicSelected', {
+      new CustomEvent<Topic>('selectTopicRequested', {
         detail: this.props.topic,
         bubbles: true,
         cancelable: true,

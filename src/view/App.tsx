@@ -11,18 +11,17 @@ import {ChapterCreationArgs, ContentExplorer} from './ContentExplorer';
 import {ChapterRenameArgs} from './ChapterElement';
 import {ButtonlessForm} from './ButtonlessForm';
 import ReactDOM from 'react-dom';
+import {pop} from '../lib/utils';
 
 export interface AppState {
   contentController: ContentController | null;
   askStoreName: boolean;
   topics: Topic[];
-  selectedTopic: Topic | null;
-  selectedChapter: Chapter | null;
-  rawMarkdownText: string;
   caretPos: number;
   editorVisible: boolean;
   previewVisible: boolean;
   lastSaveTs: Date | null;
+  showContentControls: boolean;
 }
 
 export class App
@@ -31,46 +30,55 @@ export class App
 {
   private unsavedChapters = new Map<string, ChapterChangeArgs>();
   private storeNameInput: React.RefObject<ButtonlessForm>;
-  private static readonly SAVE_INTERVAL = 2000;
+  private contentExplorerRef: React.RefObject<ContentExplorer>;
+  private contentViewerRef: React.RefObject<ContentViewer>;
+  private static readonly SAVE_INTERVAL = 5000;
 
   public constructor(props: {}) {
     super(props);
     this.storeNameInput = createRef();
+    this.contentExplorerRef = createRef();
+    this.contentViewerRef = createRef();
     this.state = {
       contentController: null,
       askStoreName: false,
       topics: [],
-      selectedTopic: null,
-      selectedChapter: null,
-      rawMarkdownText: '',
       caretPos: 0,
       editorVisible: true,
       previewVisible: true,
       lastSaveTs: null,
+      showContentControls: false,
     };
   }
 
   componentDidMount(): void {
-    document.addEventListener('chapterSelected', this.loadChapter.bind(this));
+    document.addEventListener(
+      'selectChapterRequested',
+      this.onSelectChapterRequested.bind(this)
+    );
+    document.addEventListener(
+      'selectTopicRequested',
+      this.onSelectTopicRequested.bind(this)
+    );
     document.addEventListener(
       'newTopicRequested',
-      this.createNewTopic.bind(this)
+      this.onNewTopicRequested.bind(this)
     );
     document.addEventListener(
       'newChapterRequested',
-      this.createNewChapter.bind(this)
+      this.onNewChapterRequested.bind(this)
     );
     document.addEventListener(
       'chapterContentChanged',
-      this.chapterContentChanged.bind(this)
+      this.onChapterContentChanged.bind(this)
     );
     document.addEventListener(
       'renameChapterRequseted',
-      this.renameChapterRequseted.bind(this)
+      this.onRenameChapterRequested.bind(this)
     );
     document.addEventListener(
       'deleteTopicRequested',
-      this.deleteTopicRequested.bind(this)
+      this.onDeleteTopicRequested.bind(this)
     );
     const topicInputElem = ReactDOM.findDOMNode(
       this.storeNameInput.current
@@ -88,26 +96,30 @@ export class App
   }
 
   componentWillUnmount(): void {
-    clearTimeout(this.saveUnsavedChapters());
+    this.saveUnsavedChapters().then(res => clearTimeout(res));
     document.removeEventListener(
-      'chapterSelected',
-      this.loadChapter.bind(this)
+      'selectChapterRequested',
+      this.onSelectChapterRequested.bind(this)
+    );
+    document.removeEventListener(
+      'selectTopicRequested',
+      this.onSelectTopicRequested.bind(this)
     );
     document.removeEventListener(
       'newTopicRequested',
-      this.createNewTopic.bind(this)
+      this.onNewTopicRequested.bind(this)
     );
     document.removeEventListener(
       'newChapterRequested',
-      this.createNewChapter.bind(this)
+      this.onNewChapterRequested.bind(this)
     );
     document.removeEventListener(
       'chapterContentChanged',
-      this.chapterContentChanged.bind(this)
+      this.onChapterContentChanged.bind(this)
     );
     document.removeEventListener(
       'renameChapterRequseted',
-      this.renameChapterRequseted.bind(this)
+      this.onRenameChapterRequested.bind(this)
     );
     const topicInputElem = ReactDOM.findDOMNode(
       this.storeNameInput.current
@@ -163,8 +175,9 @@ export class App
             </li>
             <li
               style={{
-                display:
-                  this.state.selectedChapter !== null ? 'inline-block' : 'none',
+                display: this.state.showContentControls
+                  ? 'inline-block'
+                  : 'none',
               }}
             >
               <button
@@ -177,8 +190,9 @@ export class App
             </li>
             <li
               style={{
-                display:
-                  this.state.selectedChapter !== null ? 'inline-block' : 'none',
+                display: this.state.showContentControls
+                  ? 'inline-block'
+                  : 'none',
               }}
             >
               <button
@@ -195,13 +209,15 @@ export class App
         </nav>
         {this.state.contentController ? (
           <>
-            <ContentExplorer topics={this.state.topics} />
+            <ContentExplorer
+              topics={this.state.topics}
+              ref={this.contentExplorerRef}
+            />
             <ContentViewer
-              selectedChapter={this.state.selectedChapter}
               caretPos={this.state.caretPos}
               editorVisible={this.state.editorVisible}
               previewVisible={this.state.previewVisible}
-              originalRawMarkdownText={this.state.rawMarkdownText}
+              ref={this.contentViewerRef}
             />
           </>
         ) : (
@@ -245,7 +261,7 @@ export class App
   private async createOrOpenStore(
     options: StoreCreationOptions | null
   ): Promise<void> {
-    clearTimeout(this.saveUnsavedChapters());
+    clearTimeout(await this.saveUnsavedChapters());
     this.state.contentController?.removeObserver(this);
 
     try {
@@ -261,53 +277,43 @@ export class App
         this.setState({
           contentController: contentController,
           topics: newTopics,
-          selectedChapter: null,
-          selectedTopic: null,
         });
         contentController.addObserver(this);
       }
     } catch (_err) {
       this.state.contentController?.addObserver(this);
-      this.saveUnsavedChapters();
+    } finally {
+      await this.saveUnsavedChapters(); //restart the save timer
     }
   }
 
-  private async loadChapter(e: CustomEvent<Chapter>): Promise<void> {
-    clearTimeout(this.saveUnsavedChapters());
-    const controller = this.state.contentController;
-    if (controller) {
-      const chapter = e.detail as Chapter;
-      const rawText = await controller.getChapterText(chapter);
-      this.setState({
-        selectedTopic: chapter.getTopic(),
-        selectedChapter: chapter,
-        rawMarkdownText: rawText,
-        lastSaveTs: null,
-      });
-      this.saveUnsavedChapters();
-    }
+  private onSelectTopicRequested(e: CustomEvent<Topic>): void {
+    this.selectTopic(e.detail);
   }
 
-  private chapterContentChanged(e: CustomEvent<ChapterChangeArgs>): void {
+  private async onSelectChapterRequested(
+    e: CustomEvent<Chapter>
+  ): Promise<void> {
+    await this.selectChapter(e.detail);
+  }
+
+  private onChapterContentChanged(e: CustomEvent<ChapterChangeArgs>): void {
     this.unsavedChapters.set(e.detail.chapter.getId(), e.detail);
   }
 
-  private saveUnsavedChapters(): NodeJS.Timeout {
+  private async saveUnsavedChapters(): Promise<NodeJS.Timeout> {
     const controller = this.state.contentController;
     if (controller) {
-      for (const [, args] of this.unsavedChapters.entries()) {
-        controller.saveChapter(args.chapter, args.rawMarkdownText).then(() => {
-          if (args.chapter === this.state.selectedChapter) {
-            this.setState({lastSaveTs: new Date()});
-          }
-        });
+      let change = pop(this.unsavedChapters);
+      while (change) {
+        await controller.saveChapter(change.chapter, change.rawMarkdownText);
+        change = pop(this.unsavedChapters);
       }
     }
-    this.unsavedChapters.clear();
     return setTimeout(this.saveUnsavedChapters.bind(this), App.SAVE_INTERVAL);
   }
 
-  private async createNewTopic(e: CustomEvent<string>): Promise<void> {
+  private async onNewTopicRequested(e: CustomEvent<string>): Promise<void> {
     const controller = this.state.contentController;
     if (controller) {
       const topic = new Topic(crypto.randomUUID(), e.detail);
@@ -315,14 +321,14 @@ export class App
     }
   }
 
-  private async deleteTopicRequested(e: CustomEvent<Topic>): Promise<void> {
+  private async onDeleteTopicRequested(e: CustomEvent<Topic>): Promise<void> {
     const controller = this.state.contentController;
     if (controller) {
       await controller.deleteTopic(e.detail);
     }
   }
 
-  private async createNewChapter(
+  private async onNewChapterRequested(
     e: CustomEvent<ChapterCreationArgs>
   ): Promise<void> {
     const controller = this.state.contentController;
@@ -334,7 +340,7 @@ export class App
     }
   }
 
-  private async renameChapterRequseted(
+  private async onRenameChapterRequested(
     e: CustomEvent<ChapterRenameArgs>
   ): Promise<void> {
     const controller = this.state.contentController;
@@ -344,12 +350,38 @@ export class App
     }
   }
 
+  private selectTopic(topic: Topic | null): void {
+    this.contentExplorerRef.current?.markTopicSelected(topic);
+    if (
+      !topic ||
+      this.contentViewerRef.current?.getSelectedChapter()?.getTopic() !== topic
+    ) {
+      this.selectChapter(null);
+    }
+    this.contentExplorerRef.current?.markTopicSelected(topic);
+  }
+
+  private async selectChapter(chapter: Chapter | null): Promise<void> {
+    const controller = this.state.contentController;
+    if (controller && chapter !== null) {
+      const rawText = await controller.getChapterText(chapter);
+      this.contentExplorerRef.current?.markChapterSelected(chapter);
+      this.contentViewerRef.current?.display(chapter, rawText);
+      this.setState({showContentControls: true, lastSaveTs: null});
+    } else {
+      this.contentExplorerRef.current?.markChapterSelected(null);
+      this.contentViewerRef.current?.display(null, '');
+      this.setState({showContentControls: false, lastSaveTs: null});
+    }
+  }
+
   onTopicCreated(topic: Topic): void {
-    this.setState({
-      topics: this.state.topics.concat(topic),
-      selectedChapter: null,
-      selectedTopic: topic,
-    });
+    this.setState(
+      {
+        topics: this.state.topics.concat(topic),
+      },
+      (() => this.selectTopic(topic)).bind(this)
+    );
   }
 
   onTopicRenamed(_topic: Topic, _newName: string): void {
@@ -357,22 +389,19 @@ export class App
   }
 
   onTopicDeleted(topic: Topic): void {
-    this.setState({
-      topics: this.state.topics.filter(t => t.getId() !== topic.getId()),
-      selectedChapter:
-        this.state.selectedChapter?.getTopic() === topic
-          ? null
-          : this.state.selectedChapter,
-      selectedTopic:
-        this.state.selectedTopic === topic ? null : this.state.selectedTopic,
-    });
+    this.setState(
+      {
+        topics: this.state.topics.filter(t => t.getId() !== topic.getId()),
+      },
+      (() => this.selectTopic(null)).bind(this)
+    );
   }
 
   onChapterCreated(chapter: Chapter): void {
-    this.setState({
-      topics: this.state.topics.map(x => x),
-      selectedChapter: chapter,
-    });
+    this.setState(
+      {topics: this.state.topics.map(x => x)},
+      (async () => await this.selectChapter(chapter)).bind(this)
+    );
   }
 
   onChapterMoved(_chapter: Chapter, _newTopic: Topic): void {
@@ -384,13 +413,16 @@ export class App
     this.setState({topics: this.state.topics.map(x => x)});
   }
 
-  onChapterDeleted(chapter: Chapter): void {
-    this.setState({
-      topics: this.state.topics.map(x => x),
-      selectedChapter:
-        this.state.selectedChapter === chapter
-          ? null
-          : this.state.selectedChapter,
-    });
+  onChapterSaved(chapter: Chapter, saveTs: Date): void {
+    if (chapter === this.contentViewerRef.current?.getSelectedChapter()) {
+      this.setState({lastSaveTs: saveTs});
+    }
+  }
+
+  onChapterDeleted(_: Chapter): void {
+    this.setState(
+      {topics: this.state.topics.map(x => x)},
+      (async () => await this.selectChapter(null)).bind(this)
+    );
   }
 }

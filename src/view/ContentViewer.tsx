@@ -3,8 +3,6 @@ import React, {createRef} from 'react';
 import {Chapter} from '../model/model';
 
 export interface ContentViewerProps {
-  selectedChapter: Chapter | null;
-  originalRawMarkdownText: string;
   caretPos: number;
   editorVisible: boolean;
   previewVisible: boolean;
@@ -17,6 +15,7 @@ export interface ChapterChangeArgs {
 
 export interface ContentViewerState {
   isInitialising: boolean;
+  selectedChapter: Chapter | null;
   rawMarkdownText: string;
   parsedHTML: string;
 }
@@ -48,8 +47,9 @@ export class ContentViewer extends React.Component<
     this.previewRef = createRef();
     this.state = {
       isInitialising: true,
-      rawMarkdownText: props.originalRawMarkdownText,
-      parsedHTML: this.converter.makeHtml(props.originalRawMarkdownText),
+      selectedChapter: null,
+      rawMarkdownText: '',
+      parsedHTML: '<div></div>',
     };
   }
 
@@ -58,23 +58,7 @@ export class ContentViewer extends React.Component<
     _prevState: Readonly<ContentViewerState>,
     _snapshot?: unknown
   ): void {
-    if (
-      prevProps.selectedChapter?.getId() !== this.props.selectedChapter?.getId()
-    ) {
-      //New chapter
-      this.setState({isInitialising: true}, () => {
-        this.update(this.props.originalRawMarkdownText);
-        this.setState({isInitialising: false});
-        const preview = this.previewRef.current;
-        if (preview) {
-          preview.scrollTop = 0;
-        }
-        const editor = this.editorRef.current;
-        if (editor) {
-          editor.scrollTop = 0;
-        }
-      });
-    } else if (prevProps.previewVisible !== this.props.previewVisible) {
+    if (prevProps.previewVisible !== this.props.previewVisible) {
       this.update(this.state.rawMarkdownText);
     }
   }
@@ -87,7 +71,7 @@ export class ContentViewer extends React.Component<
           ref={this.editorRef}
           style={{
             display:
-              this.props.selectedChapter !== null && this.props.editorVisible
+              this.state.selectedChapter !== null && this.props.editorVisible
                 ? 'block'
                 : 'none',
           }}
@@ -111,6 +95,26 @@ export class ContentViewer extends React.Component<
     );
   }
 
+  public getSelectedChapter(): Chapter | null {
+    return this.state.selectedChapter;
+  }
+
+  public display(chapter: Chapter | null, rawMarkdownText: string): void {
+    //New chapter
+    this.setState({isInitialising: true, selectedChapter: chapter}, () => {
+      this.update(rawMarkdownText);
+      this.setState({isInitialising: false});
+      const preview = this.previewRef.current;
+      if (preview) {
+        preview.scrollTop = 0;
+      }
+      const editor = this.editorRef.current;
+      if (editor) {
+        editor.scrollTop = 0;
+      }
+    });
+  }
+
   private async onMarkdownChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     this.update(e.target.value);
   }
@@ -121,7 +125,7 @@ export class ContentViewer extends React.Component<
       editor.dispatchEvent(
         new CustomEvent<ChapterChangeArgs>('chapterContentChanged', {
           detail: {
-            chapter: this.props.selectedChapter as Chapter,
+            chapter: this.state.selectedChapter as Chapter,
             rawMarkdownText: rawText,
           },
           bubbles: true,
