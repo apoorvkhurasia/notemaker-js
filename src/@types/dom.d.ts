@@ -5,16 +5,16 @@ import {ChapterChangeArgs} from '../view/ContentViewer';
 
 declare global {
   interface GlobalEventHandlersEventMap {
-    chapterSelected: CustomEvent<Chapter>;
+    selectChapterRequested: CustomEvent<Chapter>;
+    selectTopicRequested: CustomEvent<Topic>;
     newTopicRequested: CustomEvent<string>;
-    deleteTopicRequested: CustomEvent<Topic>;
     newChapterRequested: CustomEvent<ChapterCreationArgs>;
+    deleteTopicRequested: CustomEvent<Topic>;
+    deleteChapterRequested: CustomEvent<Chapter>;
     inputProvided: CustomEvent<string>;
     inputCancelled: Event;
-    topicSelected: CustomEvent<Topic>;
     renameChapterRequseted: CustomEvent<ChapterRenameArgs>;
     chapterContentChanged: CustomEvent<ChapterChangeArgs>;
-    showChapterRequestedForm: CustomEvent<Topic>;
   }
 }
 export {}; //keep that for TS compiler.

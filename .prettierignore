@@ -1,0 +1,6 @@
+.sl
+dist
+.vscode
+node_modules
+.git
+.hg

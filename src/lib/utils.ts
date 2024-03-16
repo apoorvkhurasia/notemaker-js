@@ -19,3 +19,12 @@ export function computeIfAbsent<K, V>(
   map.set(key, val);
   return val;
 }
+
+export function pop<K, V>(map: Map<K, V>): V | null {
+  if (map.size > 0) {
+    const [key, val] = map.entries().next().value;
+    map.delete(key);
+    return val;
+  }
+  return null;
+}

@@ -12,6 +12,7 @@ export interface ContentObserver {
   onChapterMoved(chapter: Chapter, newTopic: Topic): void;
   onChapterRenamed(chapter: Chapter, newName: string): void;
   onChapterDeleted(chapter: Chapter): void;
+  onChapterSaved(chapter: Chapter, saveTs: Date): void;
 }
 
 export interface ContentController {
