@@ -3,101 +3,121 @@
   inherits: false;
   initial-value: #fdf6e3;
 }
+
 @property --nav-bg-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #eee8d5;
 }
+
 @property --nav-fg-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #839496;
 }
+
 @property --code-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #002b36;
 }
+
 @property --code-bg-color {
   syntax: '<color>';
   inherits: false;
   initial-value: rgb(225, 220, 202);
 }
+
 @property --primary-text-color {
   syntax: '<color>';
   inherits: false;
-  initial-value: black;
+  initial-value: #002b36;
 }
+
 @property --navbutton-text-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #657b83;
 }
+
 @property --navbutton-bg-color {
   syntax: '<color>';
   inherits: false;
   initial-value: transparent;
 }
+
 @property --navbutton-hover-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #cfc9b9;
 }
+
 @property --navbutton-depression-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #b5b0a2;
 }
+
 @property --explorerbutton-text-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #002b36;
 }
+
 @property --explorerbutton-bg-color {
   syntax: '<color>';
   inherits: false;
   initial-value: transparent;
 }
+
 @property --explorerbutton-hover-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #cfc9b9;
 }
+
 @property --explorerbutton-depression-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #b5b0a2;
 }
+
 @property --highlight-bg-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #eee8d5;
 }
+
 @property --input-bg-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #fff5d5;
 }
+
 @property --active-item-border-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #859900;
 }
+
 @property --active-parent-border-color {
   syntax: '<color>';
   inherits: false;
   initial-value: #839496;
 }
+
 @property --blue-accent {
   syntax: '<color>';
   inherits: false;
   initial-value: #268bd2;
 }
+
 @property --red-accent {
   syntax: '<color>';
   inherits: false;
   initial-value: #dc322f;
 }
+
 @property --magenta-accent {
   syntax: '<color>';
   inherits: false;
@@ -137,6 +157,11 @@ samp {
   border: 1px solid var(--code-bg-color);
   border-radius: 6px;
   padding: 1px;
+}
+
+#storeNameInputLi>form {
+  border: 1px solid transparent;
+  padding: 2px;
 }
 
 button.navBtn {
@@ -260,49 +285,58 @@ input.mini-editor:focus {
   padding: 0;
   width: 170px;
   font-size: 0.85em;
+
   button.material-symbols-outlined {
     font-size: 1.4em;
     padding: 0;
   }
+
   .topmenu ul {
     text-align: left;
     margin: 0;
     padding-inline-start: 2px;
     padding-top: 0;
   }
+
   ul {
     list-style: none;
     padding-inline-start: 3px;
     padding: 0;
     margin: 0;
   }
+
   li.chapter {
     border-left: 2px solid var(--highlight-bg-color);
     padding-left: 10px;
     cursor: pointer;
   }
-  li > a {
+
+  li>a {
     display: block;
     text-overflow: ellipsis;
     overflow: hidden;
     width: 100%;
     white-space: nowrap;
   }
+
   li.chapter.selected,
   li.chapter:active,
   li.chapter:focus {
     background-color: var(--highlight-bg-color);
     border-color: var(--active-item-border-color);
   }
-  li.topic > details > summary {
+
+  li.topic>details>summary {
     border: 1px solid transparent;
   }
-  li.topic.selected > details > summary,
-  li.topic.selected > details > summary:active,
-  li.topic.selected > details > summary:focus,
-  li.topic > details > summary:hover {
+
+  li.topic.selected>details>summary,
+  li.topic.selected>details>summary:active,
+  li.topic.selected>details>summary:focus,
+  li.topic>details>summary:hover {
     border-color: var(--active-parent-border-color);
   }
+
   a,
   a:hover,
   a:active,
@@ -310,6 +344,7 @@ input.mini-editor:focus {
     font-weight: normal;
     text-decoration: none;
   }
+
   #explorer-items {
     padding-left: 6px;
   }
@@ -364,6 +399,7 @@ input.mini-editor:focus {
   padding: 0;
   right: 0;
   box-sizing: border-box;
+
   label {
     margin: 2px;
   }

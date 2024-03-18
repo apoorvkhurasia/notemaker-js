@@ -1,17 +1,17 @@
-import React, {createRef} from 'react';
-import {ChapterChangeArgs, ContentViewer} from './ContentViewer';
-import {Chapter, Topic} from '../model/model';
+import React, { createRef } from 'react';
+import { ChapterChangeArgs, ContentViewer } from './ContentViewer';
+import { Chapter, Topic } from '../model/model';
 import {
   ContentController,
   ContentObserver,
   StoreCreationOptions,
 } from '../controller/contentcontroller';
-import {FileSystemController} from '../controller/fs';
-import {ChapterCreationArgs, ContentExplorer} from './ContentExplorer';
-import {ChapterRenameArgs} from './ChapterElement';
-import {ButtonlessForm} from './ButtonlessForm';
+import { FileSystemController } from '../controller/fs';
+import { ChapterCreationArgs, ContentExplorer } from './ContentExplorer';
+import { ChapterRenameArgs } from './ChapterElement';
+import { ButtonlessForm } from './ButtonlessForm';
 import ReactDOM from 'react-dom';
-import {pop} from '../lib/utils';
+import { pop } from '../lib/utils';
 
 export interface AppState {
   contentController: ContentController | null;
@@ -26,8 +26,7 @@ export interface AppState {
 
 export class App
   extends React.Component<{}, AppState>
-  implements ContentObserver
-{
+  implements ContentObserver {
   private unsavedChapters = new Map<string, ChapterChangeArgs>();
   private storeNameInput: React.RefObject<ButtonlessForm>;
   private contentExplorerRef: React.RefObject<ContentExplorer>;
@@ -151,14 +150,14 @@ export class App
   public render() {
     return (
       <>
-        <nav className="topmenu" style={{width: '100%'}}>
+        <nav className="topmenu" style={{ width: '100%' }}>
           <ul>
             <li>
               <button
                 className="navBtn"
                 title="New Store"
                 onClick={(() => {
-                  this.setState({askStoreName: true}, () => {
+                  this.setState({ askStoreName: true }, () => {
                     this.storeNameInput.current?.focusInput();
                   });
                 }).bind(this)}
@@ -166,7 +165,7 @@ export class App
                 New Store
               </button>
             </li>
-            <li
+            <li id='storeNameInputLi'
               style={{
                 display: this.state.askStoreName ? 'inline-block' : 'none',
               }}
@@ -244,27 +243,27 @@ export class App
           {this.state.lastSaveTs && (
             <label>Autosaved: {this.state.lastSaveTs.toLocaleString()}</label>
           )}
-          <label style={{float: 'right'}}>md</label>
+          <label style={{ float: 'right' }}>md</label>
         </div>
       </>
     );
   }
 
   private togglePreview(): void {
-    this.setState({previewVisible: !this.state.previewVisible});
+    this.setState({ previewVisible: !this.state.previewVisible });
   }
 
   private toggleEditorVisibility(): void {
-    this.setState({editorVisible: !this.state.editorVisible});
+    this.setState({ editorVisible: !this.state.editorVisible });
   }
 
   private async createStore(e: CustomEvent<string>): Promise<void> {
-    await this.createOrOpenStore({storeName: e.detail.trim()});
-    this.setState({askStoreName: false});
+    await this.createOrOpenStore({ storeName: e.detail.trim() });
+    this.setState({ askStoreName: false });
   }
 
   private cancelCreatingStore(): void {
-    this.setState({askStoreName: false});
+    this.setState({ askStoreName: false });
   }
 
   private async openStore(): Promise<void> {
@@ -389,11 +388,11 @@ export class App
       const rawText = await controller.getChapterText(chapter);
       this.contentExplorerRef.current?.markChapterSelected(chapter);
       this.contentViewerRef.current?.display(chapter, rawText);
-      this.setState({showContentControls: true, lastSaveTs: null});
+      this.setState({ showContentControls: true, lastSaveTs: null });
     } else {
       this.contentExplorerRef.current?.markChapterSelected(null);
       this.contentViewerRef.current?.display(null, '');
-      this.setState({showContentControls: false, lastSaveTs: null});
+      this.setState({ showContentControls: false, lastSaveTs: null });
     }
   }
 
@@ -408,7 +407,7 @@ export class App
 
   onTopicRenamed(topic: Topic, newName: string): void {
     topic.setDisplayName(newName);
-    this.setState({topics: this.state.topics.map(x => x)});
+    this.setState({ topics: this.state.topics.map(x => x) });
   }
 
   onTopicDeleted(topic: Topic): void {
@@ -422,31 +421,31 @@ export class App
 
   onChapterCreated(chapter: Chapter): void {
     this.setState(
-      {topics: this.state.topics.map(x => x)},
+      { topics: this.state.topics.map(x => x) },
       (async () => await this.selectChapter(chapter)).bind(this)
     );
   }
 
   onChapterMoved(chapter: Chapter, newTopic: Topic): void {
     newTopic.addChapter(chapter);
-    this.setState({topics: this.state.topics.map(x => x)});
+    this.setState({ topics: this.state.topics.map(x => x) });
   }
 
   onChapterRenamed(chapter: Chapter, newName: string): void {
     chapter.setDisplayName(newName);
-    this.setState({topics: this.state.topics.map(x => x)});
+    this.setState({ topics: this.state.topics.map(x => x) });
   }
 
   onChapterSaved(chapter: Chapter, saveTs: Date): void {
     if (chapter === this.contentViewerRef.current?.getSelectedChapter()) {
-      this.setState({lastSaveTs: saveTs});
+      this.setState({ lastSaveTs: saveTs });
     }
   }
 
   onChapterDeleted(chapter: Chapter): void {
     chapter.getTopic()?.removeChapter(chapter);
     this.setState(
-      {topics: this.state.topics.map(x => x)},
+      { topics: this.state.topics.map(x => x) },
       (async () => await this.selectChapter(null)).bind(this)
     );
   }
