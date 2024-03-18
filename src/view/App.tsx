@@ -22,6 +22,7 @@ export interface AppState {
   previewVisible: boolean;
   lastSaveTs: Date | null;
   showContentControls: boolean;
+  darkMode: boolean;
 }
 
 export class App
@@ -48,6 +49,7 @@ export class App
       previewVisible: true,
       lastSaveTs: null,
       showContentControls: false,
+      darkMode: false,
     };
   }
 
@@ -217,6 +219,32 @@ export class App
                 {this.state.previewVisible ? 'Hide Preview' : 'Show Preview'}
               </button>
             </li>
+            <li style={{float: 'right'}}>
+              <button
+                className="navBtn"
+                title={
+                  'Switch to ' +
+                  (this.state.darkMode ? 'Light' : 'Dark') +
+                  ' mode'
+                }
+                onClick={(() => {
+                  const root = document.documentElement;
+                  if (this.state.darkMode) {
+                    root.classList.remove('dark-mode');
+                    root.classList.add('light-mode');
+                    this.setState({darkMode: false});
+                  } else {
+                    root.classList.add('dark-mode');
+                    root.classList.remove('light-mode');
+                    this.setState({darkMode: true});
+                  }
+                }).bind(this)}
+              >
+                {'Switch to ' +
+                  (this.state.darkMode ? 'Light' : 'Dark') +
+                  ' mode'}
+              </button>
+            </li>
           </ul>
         </nav>
         {this.state.contentController ? (
@@ -293,7 +321,8 @@ export class App
         });
         contentController.addObserver(this);
       }
-    } catch (_err) {
+    } catch (err) {
+      console.log(err);
       this.state.contentController?.addObserver(this);
     } finally {
       await this.saveUnsavedChapters(); //restart the save timer
