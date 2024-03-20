@@ -11,7 +11,7 @@ import {ChapterCreationArgs, ContentExplorer} from './ContentExplorer';
 import {ChapterRenameArgs} from './ChapterElement';
 import {ButtonlessForm} from './ButtonlessForm';
 import ReactDOM from 'react-dom';
-import {pop} from '../lib/utils';
+import {getSetting, pop} from '../lib/utils';
 
 export interface AppState {
   contentController: ContentController | null;
@@ -55,6 +55,26 @@ export class App
   }
 
   componentDidMount(): void {
+    this.setState(
+      {
+        darkMode: getSetting<boolean>(
+          'darkMode',
+          false,
+          (s: string) => s === 'true'
+        ),
+        previewVisible: getSetting<boolean>(
+          'previewVisible',
+          true,
+          (s: string) => s === 'true'
+        ),
+        editorVisible: getSetting<boolean>(
+          'editorVisible',
+          true,
+          (s: string) => s === 'true'
+        ),
+      },
+      (() => this.setThemeFromState()).bind(this)
+    );
     document.addEventListener(
       'selectChapterRequested',
       this.onSelectChapterRequested.bind(this)
@@ -232,16 +252,13 @@ export class App
                   ' mode'
                 }
                 onClick={(() => {
-                  const root = document.documentElement;
-                  if (this.state.darkMode) {
-                    root.classList.remove('dark-mode');
-                    root.classList.add('light-mode');
-                    this.setState({darkMode: false});
-                  } else {
-                    root.classList.add('dark-mode');
-                    root.classList.remove('light-mode');
-                    this.setState({darkMode: true});
-                  }
+                  this.setState({darkMode: !this.state.darkMode}, () => {
+                    localStorage.setItem(
+                      'darkMode',
+                      this.state.darkMode.toString()
+                    );
+                    this.setThemeFromState();
+                  });
                 }).bind(this)}
               >
                 {'Switch to ' +
@@ -283,11 +300,29 @@ export class App
   }
 
   private togglePreview(): void {
-    this.setState({previewVisible: !this.state.previewVisible});
+    this.setState({previewVisible: !this.state.previewVisible}, () =>
+      localStorage.setItem(
+        'previewVisible',
+        this.state.previewVisible.toString()
+      )
+    );
   }
 
   private toggleEditorVisibility(): void {
-    this.setState({editorVisible: !this.state.editorVisible});
+    this.setState({editorVisible: !this.state.editorVisible}, () =>
+      localStorage.setItem('editorVisible', this.state.editorVisible.toString())
+    );
+  }
+
+  private setThemeFromState(): void {
+    const root = document.documentElement;
+    if (this.state.darkMode) {
+      root.classList.remove('light-mode');
+      root.classList.add('dark-mode');
+    } else {
+      root.classList.add('light-mode');
+      root.classList.remove('dark-mode');
+    }
   }
 
   private async createStore(e: CustomEvent<string>): Promise<void> {
