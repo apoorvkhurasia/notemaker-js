@@ -33,6 +33,7 @@ export class App
   private storeNameInput: React.RefObject<ButtonlessForm>;
   private contentExplorerRef: React.RefObject<ContentExplorer>;
   private contentViewerRef: React.RefObject<ContentViewer>;
+  private saveTimer: string | number | NodeJS.Timeout | null = null;
   private static readonly SAVE_INTERVAL = 5000;
 
   public constructor(props: {}) {
@@ -102,7 +103,9 @@ export class App
   }
 
   componentWillUnmount(): void {
-    this.saveUnsavedChapters().then(res => clearTimeout(res));
+    if (this.saveTimer) {
+      clearInterval(this.saveTimer);
+    }
     document.removeEventListener(
       'selectChapterRequested',
       this.onSelectChapterRequested.bind(this)
@@ -303,7 +306,10 @@ export class App
   private async createOrOpenStore(
     options: StoreCreationOptions | null
   ): Promise<void> {
-    clearTimeout(await this.saveUnsavedChapters());
+    if (this.saveTimer) {
+      clearInterval(this.saveTimer);
+    }
+    await this.saveUnsavedChapters();
     this.state.contentController?.removeObserver(this);
 
     try {
@@ -326,7 +332,10 @@ export class App
       console.log(err);
       this.state.contentController?.addObserver(this);
     } finally {
-      await this.saveUnsavedChapters(); //restart the save timer
+      this.saveTimer = setInterval(
+        this.saveUnsavedChapters.bind(this),
+        App.SAVE_INTERVAL
+      );
     }
   }
 
@@ -344,7 +353,7 @@ export class App
     this.unsavedChapters.set(e.detail.chapter.getId(), e.detail);
   }
 
-  private async saveUnsavedChapters(): Promise<NodeJS.Timeout> {
+  private async saveUnsavedChapters(): Promise<void> {
     const controller = this.state.contentController;
     if (controller) {
       let change = pop(this.unsavedChapters);
@@ -353,7 +362,6 @@ export class App
         change = pop(this.unsavedChapters);
       }
     }
-    return setTimeout(this.saveUnsavedChapters.bind(this), App.SAVE_INTERVAL);
   }
 
   private async onNewTopicRequested(e: CustomEvent<string>): Promise<void> {
