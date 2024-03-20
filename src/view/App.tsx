@@ -11,7 +11,7 @@ import {ChapterCreationArgs, ContentExplorer} from './ContentExplorer';
 import {ChapterRenameArgs} from './ChapterElement';
 import {ButtonlessForm} from './ButtonlessForm';
 import ReactDOM from 'react-dom';
-import {pop} from '../lib/utils';
+import {getSetting, pop} from '../lib/utils';
 
 export interface AppState {
   contentController: ContentController | null;
@@ -33,6 +33,7 @@ export class App
   private storeNameInput: React.RefObject<ButtonlessForm>;
   private contentExplorerRef: React.RefObject<ContentExplorer>;
   private contentViewerRef: React.RefObject<ContentViewer>;
+  private saveTimer: string | number | NodeJS.Timeout | null = null;
   private static readonly SAVE_INTERVAL = 5000;
 
   public constructor(props: {}) {
@@ -54,6 +55,26 @@ export class App
   }
 
   componentDidMount(): void {
+    this.setState(
+      {
+        darkMode: getSetting<boolean>(
+          'darkMode',
+          false,
+          (s: string) => s === 'true'
+        ),
+        previewVisible: getSetting<boolean>(
+          'previewVisible',
+          true,
+          (s: string) => s === 'true'
+        ),
+        editorVisible: getSetting<boolean>(
+          'editorVisible',
+          true,
+          (s: string) => s === 'true'
+        ),
+      },
+      (() => this.setThemeFromState()).bind(this)
+    );
     document.addEventListener(
       'selectChapterRequested',
       this.onSelectChapterRequested.bind(this)
@@ -102,7 +123,9 @@ export class App
   }
 
   componentWillUnmount(): void {
-    this.saveUnsavedChapters().then(res => clearTimeout(res));
+    if (this.saveTimer) {
+      clearInterval(this.saveTimer);
+    }
     document.removeEventListener(
       'selectChapterRequested',
       this.onSelectChapterRequested.bind(this)
@@ -229,16 +252,13 @@ export class App
                   ' mode'
                 }
                 onClick={(() => {
-                  const root = document.documentElement;
-                  if (this.state.darkMode) {
-                    root.classList.remove('dark-mode');
-                    root.classList.add('light-mode');
-                    this.setState({darkMode: false});
-                  } else {
-                    root.classList.add('dark-mode');
-                    root.classList.remove('light-mode');
-                    this.setState({darkMode: true});
-                  }
+                  this.setState({darkMode: !this.state.darkMode}, () => {
+                    localStorage.setItem(
+                      'darkMode',
+                      this.state.darkMode.toString()
+                    );
+                    this.setThemeFromState();
+                  });
                 }).bind(this)}
               >
                 {'Switch to ' +
@@ -280,11 +300,29 @@ export class App
   }
 
   private togglePreview(): void {
-    this.setState({previewVisible: !this.state.previewVisible});
+    this.setState({previewVisible: !this.state.previewVisible}, () =>
+      localStorage.setItem(
+        'previewVisible',
+        this.state.previewVisible.toString()
+      )
+    );
   }
 
   private toggleEditorVisibility(): void {
-    this.setState({editorVisible: !this.state.editorVisible});
+    this.setState({editorVisible: !this.state.editorVisible}, () =>
+      localStorage.setItem('editorVisible', this.state.editorVisible.toString())
+    );
+  }
+
+  private setThemeFromState(): void {
+    const root = document.documentElement;
+    if (this.state.darkMode) {
+      root.classList.remove('light-mode');
+      root.classList.add('dark-mode');
+    } else {
+      root.classList.add('light-mode');
+      root.classList.remove('dark-mode');
+    }
   }
 
   private async createStore(e: CustomEvent<string>): Promise<void> {
@@ -303,7 +341,10 @@ export class App
   private async createOrOpenStore(
     options: StoreCreationOptions | null
   ): Promise<void> {
-    clearTimeout(await this.saveUnsavedChapters());
+    if (this.saveTimer) {
+      clearInterval(this.saveTimer);
+    }
+    await this.saveUnsavedChapters();
     this.state.contentController?.removeObserver(this);
 
     try {
@@ -326,7 +367,10 @@ export class App
       console.log(err);
       this.state.contentController?.addObserver(this);
     } finally {
-      await this.saveUnsavedChapters(); //restart the save timer
+      this.saveTimer = setInterval(
+        this.saveUnsavedChapters.bind(this),
+        App.SAVE_INTERVAL
+      );
     }
   }
 
@@ -344,7 +388,7 @@ export class App
     this.unsavedChapters.set(e.detail.chapter.getId(), e.detail);
   }
 
-  private async saveUnsavedChapters(): Promise<NodeJS.Timeout> {
+  private async saveUnsavedChapters(): Promise<void> {
     const controller = this.state.contentController;
     if (controller) {
       let change = pop(this.unsavedChapters);
@@ -353,7 +397,6 @@ export class App
         change = pop(this.unsavedChapters);
       }
     }
-    return setTimeout(this.saveUnsavedChapters.bind(this), App.SAVE_INTERVAL);
   }
 
   private async onNewTopicRequested(e: CustomEvent<string>): Promise<void> {
