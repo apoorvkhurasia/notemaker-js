@@ -18,6 +18,7 @@ export interface ExplorerState {
   selectedChapter: Chapter | null;
   selectedTopic: Topic | null;
   isAddingTopic: boolean;
+  isVisible: boolean;
 }
 
 export class ContentExplorer extends React.Component<
@@ -35,6 +36,7 @@ export class ContentExplorer extends React.Component<
       selectedChapter: null,
       selectedTopic: null,
       isAddingTopic: false,
+      isVisible: true,
     };
   }
 
@@ -74,6 +76,7 @@ export class ContentExplorer extends React.Component<
   ): boolean {
     return (
       nextProps.topics !== this.props.topics ||
+      nextState.isVisible !== this.state.isVisible ||
       nextState.isAddingTopic !== this.state.isAddingTopic ||
       nextState.selectedTopic !== this.state.selectedTopic ||
       nextState.selectedChapter !== this.state.selectedChapter
@@ -94,7 +97,9 @@ export class ContentExplorer extends React.Component<
       <div id="explorer" className="left-sidebar">
         <nav className="topmenu">
           <ul>
-            <li>
+            <li
+              style={{display: this.state.isVisible ? 'inline-block' : 'none'}}
+            >
               <button
                 className={'navBtn material-symbols-outlined'}
                 onClick={this.createNewTopic.bind(this)}
@@ -103,20 +108,47 @@ export class ContentExplorer extends React.Component<
                 create_new_folder
               </button>
             </li>
-            {this.state.selectedTopic !== null && (
-              <li>
-                <button
-                  className={'navBtn material-symbols-outlined'}
-                  onClick={this.createNewChapter.bind(this)}
-                  title="Add a new chapter under the current topic"
-                >
-                  new_window
-                </button>
-              </li>
-            )}
+            <li
+              style={{
+                display:
+                  this.state.isVisible && this.state.selectedTopic !== null
+                    ? 'inline-block'
+                    : 'none',
+              }}
+            >
+              <button
+                className={'navBtn material-symbols-outlined'}
+                onClick={this.createNewChapter.bind(this)}
+                title="Add a new chapter under the current topic"
+              >
+                new_window
+              </button>
+            </li>
+            <li
+              style={{
+                display: 'inline-block',
+                float: this.state.isVisible ? 'right' : 'left',
+              }}
+            >
+              <button
+                className={'navBtn material-symbols-outlined'}
+                onClick={this.toggleVisibility.bind(this)}
+                title="Add a new topic"
+              >
+                {this.state.isVisible ? (
+                  <>left_panel_close</>
+                ) : (
+                  <>left_panel_open</>
+                )}
+              </button>
+            </li>
           </ul>
         </nav>
-        <ul id="explorer-items" className="tree">
+        <ul
+          id="explorer-items"
+          className="tree"
+          style={{display: this.state.isVisible ? 'block' : 'none'}}
+        >
           {topicLiElems}
           <li
             style={{
@@ -225,5 +257,9 @@ export class ContentExplorer extends React.Component<
       );
       this.setState({isAddingTopic: false});
     }
+  }
+
+  private toggleVisibility(): void {
+    this.setState({isVisible: !this.state.isVisible});
   }
 }
