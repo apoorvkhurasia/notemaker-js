@@ -207,7 +207,6 @@ input.mini-editor:focus {
   margin: 0;
   padding: 0;
   font-size: 0.85em;
-  width: auto;
   max-width: 170px;
 
   button.material-symbols-outlined {
