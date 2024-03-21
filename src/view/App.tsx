@@ -57,20 +57,16 @@ export class App
   componentDidMount(): void {
     this.setState(
       {
-        darkMode: getSetting<boolean>(
-          'darkMode',
-          false,
-          (s: string) => s === 'true'
-        ),
+        darkMode: getSetting<boolean>('darkMode', false, s => s === 'true'),
         previewVisible: getSetting<boolean>(
           'previewVisible',
           true,
-          (s: string) => s === 'true'
+          s => s === 'true'
         ),
         editorVisible: getSetting<boolean>(
           'editorVisible',
           true,
-          (s: string) => s === 'true'
+          s => s === 'true'
         ),
       },
       (() => this.setThemeFromState()).bind(this)
@@ -251,15 +247,7 @@ export class App
                   (this.state.darkMode ? 'Light' : 'Dark') +
                   ' mode'
                 }
-                onClick={(() => {
-                  this.setState({darkMode: !this.state.darkMode}, () => {
-                    localStorage.setItem(
-                      'darkMode',
-                      this.state.darkMode.toString()
-                    );
-                    this.setThemeFromState();
-                  });
-                }).bind(this)}
+                onClick={this.toggleLightMode.bind(this)}
               >
                 {'Switch to ' +
                   (this.state.darkMode ? 'Light' : 'Dark') +
@@ -312,6 +300,13 @@ export class App
     this.setState({editorVisible: !this.state.editorVisible}, () =>
       localStorage.setItem('editorVisible', this.state.editorVisible.toString())
     );
+  }
+
+  private toggleLightMode(): void {
+    this.setState({darkMode: !this.state.darkMode}, () => {
+      localStorage.setItem('darkMode', this.state.darkMode.toString());
+      this.setThemeFromState();
+    });
   }
 
   private setThemeFromState(): void {
