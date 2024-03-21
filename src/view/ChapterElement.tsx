@@ -37,7 +37,7 @@ export class ChapterElement extends React.Component<
     return (
       <li
         className={'chapter' + (this.state.isSelected ? ' selected' : '')}
-        onClick={this.loadChapter.bind(this)}
+        onClick={this.selectChapterRequested.bind(this)}
         onDoubleClick={this.showEditor.bind(this)}
       >
         {this.state.editingName ? (
@@ -118,7 +118,10 @@ export class ChapterElement extends React.Component<
     }
   }
 
-  private loadChapter(): void {
+  private selectChapterRequested(): void {
+    if (this.state.isSelected) {
+      return; //No need to fire the event if we are already selected
+    }
     const me = ReactDOM.findDOMNode(this);
     me?.dispatchEvent(
       new CustomEvent<Chapter>('selectChapterRequested', {
