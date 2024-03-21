@@ -94,7 +94,13 @@ export class ContentExplorer extends React.Component<
       ></TopicElement>
     ));
     return (
-      <div id="explorer" className="left-sidebar">
+      <div
+        id="explorer"
+        className="left-sidebar"
+        style={{
+          width: this.state.isVisible ? '170px' : 'auto',
+        }}
+      >
         <nav className="topmenu">
           <ul>
             <li
