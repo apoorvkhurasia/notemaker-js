@@ -28,3 +28,16 @@ export function pop<K, V>(map: Map<K, V>): V | null {
   }
   return null;
 }
+
+export function getSetting<T>(
+  key: string,
+  defaultVal: T,
+  converter: (val: string) => T
+): T {
+  const setting = localStorage.getItem(key);
+  if (setting !== null) {
+    return converter(setting);
+  } else {
+    return defaultVal;
+  }
+}
