@@ -23,12 +23,12 @@
 }
 
 .dark-mode {
-  --bg-color: #073642;
+  --bg-color: #002b36;
   --primary-text-color: #839496;
-  --nav-bg-color: #002b36;
+  --nav-bg-color: #00212b;
   --nav-fg-color: #839496;
   --code-color: #93a1a1;
-  --code-bg-color: #073642;
+  --code-bg-color: #002b36;
   --navbutton-text-color: #fdf6e3;
   --navbutton-bg-color: transparent;
   --navbutton-hover-color: #014859;
